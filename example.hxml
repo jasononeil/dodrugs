@@ -1,15 +1,14 @@
--main Test
+-main Example
 -cp src
 -cp test
--lib utest
 -lib tink_macro
 -lib tink_core
 -dce full
 --each
 
--neko bin/test.n
+-neko bin/example.n
 
 --next
 
--js bin/test.js
+-js bin/example.js
 -D js-es5
