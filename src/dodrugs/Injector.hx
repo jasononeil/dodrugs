@@ -41,6 +41,17 @@ class Injector<Const> {
 		return macro $v{id};
 	}
 
+	/**
+	Transform the mapping rule expression into the mapping function used at runtime.
+
+	Valid formats:
+
+	- `MyClass`
+	- `Value(myValue)`
+	- `Class(MyClass)`
+	- `Singleton(MyClass)`
+	- `Function(function(inj:Injector,mappingID:String):Any { ... })`
+	**/
 	public static macro function getInjectionMapping( mappingExpr:haxe.macro.Expr ):haxe.macro.Expr {
 		return InjectorMacro.getInjectionMappingFromExpr( mappingExpr );
 	}
