@@ -53,17 +53,16 @@ class InjectorMacro {
 	public static function getInjectionMappingFromExpr( mapExpr:Expr ):Expr {
 		switch mapExpr {
 			case macro Function($fnExpr):
-				return macro dodrugs.InjectorMapping.Function( $fnExpr );
+				return fnExpr;
 			case macro Class($classExpr):
-				var fnExpr = buildClassInstantiationFn( classExpr );
-				return macro dodrugs.InjectorMapping.Function( $fnExpr );
+				return buildClassInstantiationFn( classExpr );
 			case macro Singleton($classExpr):
 				var fnExpr = buildClassInstantiationFn( classExpr );
-				return macro dodrugs.InjectorMapping.Singleton( $fnExpr );
+				return macro @:pos(classExpr.pos) function(inj:dodrugs.InjectorInstance,id:String):tink.core.Any return @:privateAccess inj.getSingleton( $fnExpr, id );
 			case macro Value($e):
-				return macro dodrugs.InjectorMapping.Value( $e );
+				return macro @:pos(e.pos) function(_:dodrugs.InjectorInstance, _:String):tink.core.Any return ($e:tink.core.Any);
 			case _:
-				return mapExpr.reject( 'Injector mappings should be a Value(v), Class(cl), Singleton(cl) or Function(Injector->Outcome<T,Error>)' );
+				return mapExpr.reject( 'Injector mappings should be a Value(v), Class(cl), Singleton(cl) or Function(Injector->Outcome<T,String>)' );
 		}
 	}
 
@@ -83,25 +82,27 @@ class InjectorMacro {
 			case TPath(tp): tp;
 			case _: throw 'assert';
 		}
-		var constructExpr = getConstructorExpression( targetClassType, targetTypePath, p );
+		var constructorLines = getConstructorExpressions( targetClassType, targetTypePath, p );
 		var methodInjections = getMethodInjectionExpressions( targetClassType, p );
 		var propertyInjections = getPropertyInjectionExpressions( targetClassType, p );
 		var postInjections = getPostInjectionExpressions( targetClassType, p );
-		var returnExpr = macro return Success(o);
-		var allLines = [[constructExpr],methodInjections,propertyInjections,postInjections,[returnExpr]];
-		var block = [for (group in allLines) for (line in group) line];
-		var fn = macro @:pos(p) function(inj):tink.core.Outcome<$targetComplexType,tink.core.Error> {
-			try $b{block} catch (e:tink.core.Error) {
-				return Failure( e );
-			}
-		}
-		return fn;
+
+		var allLines = [for (arr in [constructorLines,methodInjections,propertyInjections,postInjections]) for (line in arr) line];
+		allLines.push( macro return (o:tink.core.Any) );
+		return macro @:pos(p) function(inj:dodrugs.InjectorInstance,id:String):tink.core.Any $b{allLines}
 	}
 
-	static function getConstructorExpression( type:ClassType, typePath:TypePath, pos:Position ):Expr {
+	static function getConstructorExpressions( type:ClassType, typePath:TypePath, pos:Position ):Array<Expr> {
 		var constructor = getConstructorForType( type, pos ).sure();
-		var constructorArguments = getArgumentsForMethodInjection( constructor, pos );
-		return macro @:pos(pos) var o = new $typePath( $a{constructorArguments} );
+		var constructorLines = [];
+		var constructorArguments = [];
+		var fnArgumentLines = getArgumentsForMethodInjection( constructor, pos );
+		for ( argPair in fnArgumentLines ) {
+			constructorArguments.push( argPair.a );
+			constructorLines.push( argPair.b );
+		}
+		constructorLines.push( macro @:pos(pos) var o = new $typePath($a{constructorArguments}) );
+		return constructorLines;
 	}
 
 	static function getMethodInjectionExpressions( type:ClassType, pos:Position ):Array<Expr> {
@@ -110,7 +111,12 @@ class InjectorMacro {
 		for ( field in injectionFields ) {
 			if ( field.kind.match(FMethod(_)) ) {
 				var fieldName = field.name;
-				var fnArguments = getArgumentsForMethodInjection( field, pos );
+				var fnArguments = [];
+				var fnArgumentLines = getArgumentsForMethodInjection( field, pos );
+				for ( argPair in fnArgumentLines ) {
+					fnArguments.push( argPair.a );
+					injectionExprs.push( argPair.b );
+				}
 				var callFnExpr = macro @:pos(pos) o.$fieldName( $a{fnArguments} );
 				injectionExprs.push( callFnExpr );
 			}
@@ -153,7 +159,9 @@ class InjectorMacro {
 				var injectionName = (metaNames[0]!="") ? metaNames[0] : null;
 				var getValueExpr = generateExprToGetValueFromInjetor( fieldType, injectionName, defaultValue );
 				var fieldName = field.name;
-				var setPropExpr = macro @:pos(pos) o.$fieldName = $getValueExpr;
+				// Note, $getValueExpr is typed as `Any`, but the auto-cast to the intended type produces some verbose JS code.
+				// We're using an unsafe cast here to make sure the JS code is nice and clean.
+				var setPropExpr = macro @:pos(pos) o.$fieldName = cast $getValueExpr;
 				injectionExprs.push( setPropExpr );
 			}
 		}
@@ -187,7 +195,7 @@ class InjectorMacro {
 		return fields;
 	}
 
-	static function getArgumentsForMethodInjection( method:ClassField, injectionPos:Position ):Array<Expr> {
+	static function getArgumentsForMethodInjection( method:ClassField, injectionPos:Position ):Array<Pair<Expr,Expr>> {
 		var metaNames = getInjectionNamesFromMetadata( method );
 		switch [method.kind, method.expr().expr] {
 			case [FMethod(_), TFunction({ args:methodArgs, expr:_, t:_ })]:
@@ -197,9 +205,12 @@ class InjectorMacro {
 				else {
 					var argumentExprs = [];
 					for ( i in 0...methodArgs.length ) {
+						var varName = methodArgs[i].v.name;
 						var injectionName = (metaNames[i]!="") ? metaNames[i] : null;
-						var expr = getExprForFunctionArg( methodArgs[i], injectionName );
-						argumentExprs.push( expr );
+						var getValueExpr = getExprForFunctionArg( methodArgs[i], injectionName );
+						var identExpr = macro $i{varName};
+						var setValueExpr = macro var $varName = $getValueExpr;
+						argumentExprs.push( new Pair(identExpr,setValueExpr) );
 					}
 					return argumentExprs;
 				}
@@ -256,16 +267,9 @@ class InjectorMacro {
 
 	static function generateExprToGetValueFromInjetor( type:Type, injectionName:Null<String>, defaultValue:Null<Expr> ):Expr {
 		var injectionID = getInjectionIDAndMarkRequired( type, injectionName, defaultValue!=null );
-		var expr:Expr;
-		if ( defaultValue!=null ) {
-			expr = macro inj.getOptionalValueFromMappingID($v{injectionID}, $defaultValue);
-		}
-		else {
-			var attemptMapping = macro inj.getValueFromMappingID($v{injectionID});
-			expr = macro tink.CoreApi.OutcomeTools.sure( $attemptMapping );
-		}
-		var complexType = type.toComplex();
-		return macro ($expr:$complexType);
+		return
+			if ( defaultValue!=null ) macro inj.getOptionalValueFromMappingID( $v{injectionID}, $defaultValue )
+			else macro inj.getValueFromMappingID( $v{injectionID} );
 	}
 
 	static function getInjectionIDAndMarkRequired( type:Type, name:String, isOptional:Bool ) {
@@ -338,11 +342,11 @@ class InjectorMacro {
 					mappingRules.push( rule );
 				}
 			case _:
-				mappings.reject( 'Injector rules should be provided using Array syntax.' );
+				mappings.reject( 'Injector rules should be provided using Map Literal syntax.' );
 		}
 		return
 			if ( mappingRules.length>0 ) macro [ $a{mappingRules} ];
-			else macro new Map();
+			else macro {};
 	}
 
 	static function processMappingExpr( mappingExpr:Expr ) {

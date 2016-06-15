@@ -5,6 +5,7 @@ import dodrugs.InjectorMapping;
 import haxe.Http;
 using tink.CoreApi;
 
+@:keep
 class ClassInstantiation {
 	public function new() {}
 
@@ -17,131 +18,91 @@ class ClassInstantiation {
 		http = new Http( "/" );
 		array = [0,1,2];
 		array2 = [-1,3,366];
-		injector = @:privateAccess new InjectorInstance( null, [
-			"StdTypes.Int age" => Value(28),
-			"String name" => Value("Jason"),
-			"haxe.Http" => Value(http),
-			"Array<StdTypes.Int>" => Value(array),
-			"Array<StdTypes.Int> leastFavouriteNumbers" => Value(array2),
-		]);
+		injector = @:privateAccess new InjectorInstance( null, {
+			"StdTypes.Int age": function(i,_) return 28,
+			"String name": function(i,_) return "Jason",
+			"haxe.Http": function(i,_) return http,
+			"Array<StdTypes.Int>": function(i,_) return array,
+			"Array<StdTypes.Int> leastFavouriteNumbers": function(i,_) return array2,
+		});
 	}
 
 	function testInstantiateClassWithConstructorInjection() {
 		var action = Injector.getInjectionMapping( Class(InjectionTest_Constructor) );
-		switch action {
-			case Function(fn):
-				var result:InjectionTest_Constructor = fn( injector ).sure();
-				Assert.equals( "Jason", result.name );
-				Assert.equals( 28, result.age );
-				Assert.equals( http, result.httpRequest );
-				Assert.equals( array, result.favouriteNumbers );
-			case _:
-				Assert.fail( 'Expected action to be a Function()' );
-		}
+		var result:InjectionTest_Constructor = action( injector, "" );
+		Assert.equals( "Jason", result.name );
+		Assert.equals( 28, result.age );
+		Assert.equals( http, result.httpRequest );
+		Assert.equals( array, result.favouriteNumbers );
 	}
 
 	function testInstantiateSubClass() {
 		var action = Injector.getInjectionMapping( Class(InjectionTest_Constructor_Subclass) );
-		switch action {
-			case Function(fn):
-				var result:InjectionTest_Constructor_Subclass = fn( injector ).sure();
-				Assert.equals( "Jason", result.name );
-				Assert.equals( 28, result.age );
-				Assert.equals( http, result.httpRequest );
-				Assert.equals( 0, result.favouriteNumbers.length );
-			case _:
-				Assert.fail( 'Expected action to be a Function()' );
-		}
+		var result:InjectionTest_Constructor_Subclass = action( injector, "" );
+		Assert.equals( "Jason", result.name );
+		Assert.equals( 28, result.age );
+		Assert.equals( http, result.httpRequest );
+		Assert.equals( 0, result.favouriteNumbers.length );
 	}
 
 	function testInstantiateClassWithPropertyInjection() {
 		var action = Injector.getInjectionMapping( Class(InjectionTest_Properties) );
-		switch action {
-			case Function(fn):
-				var result:InjectionTest_Properties = fn( injector ).sure();
-				Assert.equals( "Jason", result.name );
-				Assert.equals( 28, result.age );
-				Assert.equals( http, result.httpRequest );
-				Assert.equals( array, result.favouriteNumbers );
-			case _:
-				Assert.fail( 'Expected action to be a Function()' );
-		}
+		var result:InjectionTest_Properties = action( injector, "" );
+		Assert.equals( "Jason", result.name );
+		Assert.equals( 28, result.age );
+		Assert.equals( http, result.httpRequest );
+		Assert.equals( array, result.favouriteNumbers );
 	}
 
 	function testInstantiateClassWithMethodInjection() {
 		var action = Injector.getInjectionMapping( Class(InjectionTest_Method) );
-		switch action {
-			case Function(fn):
-				var result:InjectionTest_Method = fn( injector ).sure();
-				Assert.equals( "Jason", result.name );
-				Assert.equals( 28, result.age );
-				Assert.equals( http, result.httpRequest );
-				Assert.equals( array, result.favouriteNumbers );
-			case _:
-				Assert.fail( 'Expected action to be a Function()' );
-		}
+		var result:InjectionTest_Method = action( injector, "" );
+		Assert.equals( "Jason", result.name );
+		Assert.equals( 28, result.age );
+		Assert.equals( http, result.httpRequest );
+		Assert.equals( array, result.favouriteNumbers );
 	}
 
 	function testInstantiateClassWithPostInjection() {
 		var action = Injector.getInjectionMapping( Class(InjectionTest_Post) );
-		switch action {
-			case Function(fn):
-				var result:InjectionTest_Post = fn( injector ).sure();
-				Assert.equals( 1, result.postCalled );
-			case _:
-				Assert.fail( 'Expected action to be a Function()' );
-		}
+		var result:InjectionTest_Post = action( injector, "" );
+		Assert.equals( 1, result.postCalled );
 	}
 
 	function testInstantiateCombination() {
 		var action = Injector.getInjectionMapping( Class(InjectionTest_Combination) );
-		switch action {
-			case Function(fn):
-				var result:InjectionTest_Combination = fn( injector ).sure();
-				Assert.equals( "Jason", result.name );
-				Assert.equals( 28, result.age );
-				Assert.equals( http, result.httpRequest );
-				Assert.equals( array, result.favouriteNumbers );
-				Assert.equals( 1, result.postCalled );
-			case _:
-				Assert.fail( 'Expected action to be a Function()' );
-		}
+		var result:InjectionTest_Combination = action( injector, "" );
+		Assert.equals( "Jason", result.name );
+		Assert.equals( 28, result.age );
+		Assert.equals( http, result.httpRequest );
+		Assert.equals( array, result.favouriteNumbers );
+		Assert.equals( 1, result.postCalled );
 	}
 
 	function testInstantiateCombinationSubClass() {
 		var action = Injector.getInjectionMapping( Class(InjectionTest_Combination_Subclass) );
-		switch action {
-			case Function(fn):
-				var result:InjectionTest_Combination_Subclass = fn( injector ).sure();
-				Assert.equals( "Jason", result.name );
-				Assert.equals( 29, result.age );
-				Assert.equals( http, result.httpRequest );
-				Assert.same( [3,33,333], result.favouriteNumbers );
-				Assert.same( [-1,3,366], result.leastFavouriteNumbers );
-				Assert.equals( 2, result.postCalled );
-			case _:
-				Assert.fail( 'Expected action to be a Function()' );
-		}
+		var result:InjectionTest_Combination_Subclass = action( injector, "" );
+		Assert.equals( "Jason", result.name );
+		Assert.equals( 29, result.age );
+		Assert.equals( http, result.httpRequest );
+		Assert.same( [3,33,333], result.favouriteNumbers );
+		Assert.same( [-1,3,366], result.leastFavouriteNumbers );
+		Assert.equals( 2, result.postCalled );
 	}
 
 	function testInstantiateClassWithDefaultValues() {
 		var action = Injector.getInjectionMapping( Class(InjectionTest_DefaultValues) );
-		switch action {
-			case Function(fn):
-				var result:InjectionTest_DefaultValues = fn( injector ).sure();
-				Assert.equals( "Felix", result.defaultPropertyString );
-				Assert.equals( 1, result.defaultPropertyInt );
-				Assert.equals( null, result.defaultPropertyNull );
-				Assert.equals( "Felix", result.defaultConstructorString );
-				Assert.equals( 1, result.defaultConstructorInt );
-				Assert.equals( null, result.defaultConstructorNull );
-				Assert.equals( null, result.defaultConstructorOptional );
-				Assert.equals( "Felix", result.defaultMethodString );
-				Assert.equals( 1, result.defaultMethodInt );
-				Assert.equals( null, result.defaultMethodNull );
-				Assert.equals( null, result.defaultMethodOptional );
-			case _:
-				Assert.fail( 'Expected action to be a Function()' );
-		}
+		var result:InjectionTest_DefaultValues = action( injector, "" );
+		Assert.equals( "Felix", result.defaultPropertyString );
+		Assert.equals( 1, result.defaultPropertyInt );
+		Assert.equals( null, result.defaultPropertyNull );
+		Assert.equals( "Felix", result.defaultConstructorString );
+		Assert.equals( 1, result.defaultConstructorInt );
+		Assert.equals( null, result.defaultConstructorNull );
+		Assert.equals( null, result.defaultConstructorOptional );
+		Assert.equals( "Felix", result.defaultMethodString );
+		Assert.equals( 1, result.defaultMethodInt );
+		Assert.equals( null, result.defaultMethodNull );
+		Assert.equals( null, result.defaultMethodOptional );
 	}
 }

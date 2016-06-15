@@ -1,3 +1,5 @@
 package dodrugs;
 
-typedef InjectorMappings = Map<String,InjectorMapping<Dynamic>>;
+import haxe.DynamicAccess;
+
+typedef InjectorMappings = DynamicAccess<InjectorMapping<Dynamic>>;

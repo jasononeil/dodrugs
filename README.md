@@ -128,6 +128,12 @@ TODO: demonstrate how this has compile time safety.
 
 	Our aim is to avoid using `Reflect.callMethod`, `Reflect.setProperty`, `Reflect.fields`, `Type.getInstanceFields` or similar methods. We do this by using macros to generate regular imperitive Haxe for instantiating new objects.
 
+ 4. Minimal runtime dependencies.
+
+	We have a compile time dependency on `tink_core` and `tink_macro`.
+
+	In our runtime code, though only part of tink_core we use is `tink.core.Any`, which is a safer replacement for `Dynamic`, and will not require any extra code to be included at runtime.
+
 About the project
 -----------------
 

@@ -2,7 +2,9 @@ import utest.Assert;
 import dodrugs.Injector;
 import dodrugs.InjectorMapping;
 import haxe.ds.ArraySort;
+using tink.CoreApi;
 
+@:keep
 class MacroUtils {
 	public function new() {}
 
@@ -32,24 +34,15 @@ class MacroUtils {
 
 	function testMapValue() {
 		var val = Injector.getInjectionMapping( Value(3600) );
-		Assert.same( InjectorMapping.Value(3600), val );
+		Assert.same( 3600, val(null,"") );
 
-		var fn = function(inj) return inj.getValueFromMappingID("test");
+		var fn = function(inj,id) return inj.getValueFromMappingID("test");
 		var val = Injector.getInjectionMapping( Function(fn) );
-		Assert.same( InjectorMapping.Function(fn), val );
+		Assert.equals( fn, val );
 
+		// Just test these don't throw errors.
+		// We'll check the class instantiation functions in `ClassInstantiation.hx`
 		var val = Injector.getInjectionMapping( Class(Test) );
-		switch val {
-			case Function(fn):
-			case other:
-				Assert.fail( 'Expected Class(_) mapping to result in a InjectorMapping.Function(), but it was $other' );
-		}
-
 		var val = Injector.getInjectionMapping( Singleton(Test) );
-		switch val {
-			case Singleton(fn):
-			case other:
-				Assert.fail( 'Expected Class(_) mapping to result in a InjectorMapping.Singleton(), but it was $other' );
-		}
 	}
 }

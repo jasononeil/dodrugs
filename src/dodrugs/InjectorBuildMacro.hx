@@ -32,7 +32,6 @@ class InjectorBuildMacro {
 		var classNameParts = qualifiedClassName.split( "." );
 		var className = classNameParts.pop();
 		var typeDefinition = macro class $className extends dodrugs.InjectorInstance {
-
 		};
 		typeDefinition.pack = classNameParts;
 		typeDefinition.pos = p;

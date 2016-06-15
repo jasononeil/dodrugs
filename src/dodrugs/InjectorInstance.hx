@@ -1,6 +1,6 @@
 package dodrugs;
 
-import tink.CoreApi;
+import tink.core.Any;
 
 class InjectorInstance {
 	var parent:Null<InjectorInstance>;
@@ -11,39 +11,22 @@ class InjectorInstance {
 		this.mappings = mappings;
 	}
 
-	public function getValueFromMappingID( id:String ):Outcome<Any,Error> {
-		if ( mappings.exists(id) ) {
-			return processMapping( id, mappings[id] );
-		}
-		else if ( this.parent!=null ) {
-			return this.parent.getValueFromMappingID( id );
-		}
-		else {
-			return Failure( new Error('The injector had no mapping for "$id"') );
-		}
+	public function getValueFromMappingID( id:String ):Any {
+		return
+			if ( mappings.exists(id) ) mappings[id]( this, id )
+			else if ( this.parent!=null ) this.parent.getValueFromMappingID( id )
+			else throw 'The injection had no mapping for "$id"';
 	}
 
 	public function getOptionalValueFromMappingID( id:String, fallback:Any ):Any {
-		return switch getValueFromMappingID( id ) {
-			case Success(v): v;
-			case Failure(_): fallback;
-		}
+		return
+			try getValueFromMappingID( id )
+			catch (e:Dynamic) fallback;
 	}
 
-	function processMapping( id:String, mapping:InjectorMapping<Any> ):Outcome<Any,Error> {
-		switch mapping {
-			case Value( val ):
-				return Success( val );
-			case Function( fn ):
-				return fn( this );
-			case Singleton( fn ):
-				switch fn( this ) {
-					case Success( singleton ):
-						mappings[id] = InjectorMapping.Value( singleton );
-						return Success( singleton );
-					case Failure( err ):
-						return Failure( err );
-				}
-		}
+	function getSingleton( mapping:InjectorMapping<Any>, id:String ):Any {
+		var val = mappings[id]( this, id );
+		mappings[id] = function(_, _) return val;
+		return val;
 	}
 }
