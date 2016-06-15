@@ -45,6 +45,17 @@ class InjectorMacro {
 	}
 
 	/**
+	Find the expected ComplexType based on the same expression used to get the injection ID.
+
+	@param mapType The expression representing the type or name we wish to reference.
+	@return The complex type that this expression represents.
+	**/
+	public static function getComplexTypeFromIdExpr( mapType:Expr ):ComplexType {
+		var pair = getMappingDetailsFromExpr( mapType );
+		return makeTypePathAbsolute( pair.a, mapType.pos );
+	}
+
+	/**
 	Get an expression for the runtime `InjectorMapping` value based on the compile-time expression.
 
 	@param mapExpr The compile time expression describing how the map should work.
@@ -344,21 +355,22 @@ class InjectorMacro {
 			case _:
 				mappings.reject( 'Injector rules should be provided using Map Literal syntax.' );
 		}
-		return
-			if ( mappingRules.length>0 ) macro [ $a{mappingRules} ];
-			else macro {};
+		var objDecl = { expr:EObjectDecl(mappingRules), pos:mappings.pos };
+		return macro ($objDecl:haxe.DynamicAccess<dodrugs.InjectorMapping<tink.core.Any>>);
 	}
 
-	static function processMappingExpr( mappingExpr:Expr ) {
+	static function processMappingExpr( mappingExpr:Expr ):{ field:String, expr:Expr } {
 		switch mappingExpr {
 			case macro $i{typeName}:
 				var mappingID = getInjectionIdFromExpr( mappingExpr );
-				return macro $v{mappingID} => null;
-			case macro $mapType = $mapRule:
+				var injectorMapping = getInjectionMappingFromExpr( macro Class($mappingExpr) );
+				return { field:mappingID, expr: injectorMapping };
+			case macro $mapType => $mapRule:
 				var mappingID = getInjectionIdFromExpr( mapType );
-				return macro $v{mappingID} => null;
+				var injectorMapping = getInjectionMappingFromExpr( mapRule );
+				return { field:mappingID, expr: injectorMapping };
 			case _:
-				return mappingExpr.reject( 'Mapping expression should either by `TypeName` or `MappedType = ImplementationType`' );
+				return mappingExpr.reject( 'Mapping expression should either by `TypeName` or `MappedType => ImplementationType`' );
 		}
 	}
 

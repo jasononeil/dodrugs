@@ -5,21 +5,24 @@ import haxe.DynamicAccess;
 class Example {
 	static function main() {
 		var injector = setupInjector();
-		var action = Injector.getInjectionMapping( Class(Person) );
-		var person:Person = action( injector, "" );
+		var person = buildPerson( injector );
 		trace( 'I am ${person.name}, I am ${person.age} years old and I have ${person.favouriteNumbers.length} favourite numbers' );
 	}
 
-	static function setupInjector() {
+	public static function setupInjector() {
 		var array = [0,1,2];
 		var array2 = [-1,3,366];
-		var rules:DynamicAccess<InjectorMapping<tink.core.Any>> = {
-			"StdTypes.Int age": function(i,_) return 28,
-			"String name": function(i,_) return "Jason",
-			"Array<StdTypes.Int>": function(i,_) return array,
-			"Array<StdTypes.Int> leastFavouriteNumbers": function(i,_) return array2,
-		};
-		return @:privateAccess new InjectorInstance( null, rules );
+		return Injector.create( "exampleInjector", [
+			Person,
+			(age:Int) => Value(28),
+			(name:String) => Value("Jason"),
+			(_:Array<Int>) => Value(array),
+			(leastFavouriteNumbers:Array<Int>) => Value(array2),
+		]);
+	}
+
+	public static function buildPerson( injector:InjectorInstance ) {
+		return injector.get( Person );
 	}
 }
 
@@ -28,7 +31,7 @@ class Person {
 	public var name:String;
 	@inject("age") public var age:Int;
 	public var favouriteNumbers:Array<Int>;
-	@inject("leastFavouriteNumbers") public var leastFavouriteNumbers:Array<Int>;
+	@inject("leastFavouriteNumbers") public var leastFavouriteNumbers:Null<Array<Int>>;
 
 	@inject("name")
 	public function new( name:String ) {

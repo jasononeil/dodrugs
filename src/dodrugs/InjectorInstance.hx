@@ -29,4 +29,25 @@ class InjectorInstance {
 		mappings[id] = function(_, _) return val;
 		return val;
 	}
+
+	// Macro helpers
+
+	/**
+	Get a value from the injector.
+
+	This essentially is a shortcut for:
+
+	`injector.getValueFromMappingID( Injector.getInjectionID(MyClass) );`
+
+	@param request The object to request. See `Injector.getInjectionId()` for a description of valid formats.
+	@return The requested object, with all injections applied.
+	@throws (String) An error if the injection cannot be completed.
+
+	TODO: Support a `var cnx:Connection = injector.get()` format using Context.getExpectedType().
+	**/
+	public macro function get( ethis:haxe.macro.Expr, typeExpr:haxe.macro.Expr ):haxe.macro.Expr {
+		var id = InjectorMacro.getInjectionIdFromExpr( typeExpr );
+		var complexType = InjectorMacro.getComplexTypeFromIdExpr( typeExpr );
+		return macro ($ethis.getValueFromMappingID($v{id}):$complexType);
+	}
 }
