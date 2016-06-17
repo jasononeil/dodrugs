@@ -28,8 +28,8 @@ class ClassInstantiation {
 	}
 
 	function testInstantiateClassWithConstructorInjection() {
-		var action = Injector.getInjectionMapping( Class(InjectionTest_Constructor) );
-		var result:InjectionTest_Constructor = action( injector, "" );
+		var mapping = Injector.getInjectionMapping( InjectionTest_Constructor );
+		var result:InjectionTest_Constructor = mapping.mappingFn( injector, "" );
 		Assert.equals( "Jason", result.name );
 		Assert.equals( 28, result.age );
 		Assert.equals( http, result.httpRequest );
@@ -37,8 +37,8 @@ class ClassInstantiation {
 	}
 
 	function testInstantiateSubClass() {
-		var action = Injector.getInjectionMapping( Class(InjectionTest_Constructor_Subclass) );
-		var result:InjectionTest_Constructor_Subclass = action( injector, "" );
+		var mapping = Injector.getInjectionMapping( InjectionTest_Constructor_Subclass );
+		var result:InjectionTest_Constructor_Subclass = mapping.mappingFn( injector, "" );
 		Assert.equals( "Jason", result.name );
 		Assert.equals( 28, result.age );
 		Assert.equals( http, result.httpRequest );
@@ -46,8 +46,8 @@ class ClassInstantiation {
 	}
 
 	function testInstantiateClassWithPropertyInjection() {
-		var action = Injector.getInjectionMapping( Class(InjectionTest_Properties) );
-		var result:InjectionTest_Properties = action( injector, "" );
+		var mapping = Injector.getInjectionMapping( InjectionTest_Properties );
+		var result:InjectionTest_Properties = mapping.mappingFn( injector, "" );
 		Assert.equals( "Jason", result.name );
 		Assert.equals( 28, result.age );
 		Assert.equals( http, result.httpRequest );
@@ -55,8 +55,8 @@ class ClassInstantiation {
 	}
 
 	function testInstantiateClassWithMethodInjection() {
-		var action = Injector.getInjectionMapping( Class(InjectionTest_Method) );
-		var result:InjectionTest_Method = action( injector, "" );
+		var mapping = Injector.getInjectionMapping( InjectionTest_Method );
+		var result:InjectionTest_Method = mapping.mappingFn( injector, "" );
 		Assert.equals( "Jason", result.name );
 		Assert.equals( 28, result.age );
 		Assert.equals( http, result.httpRequest );
@@ -64,14 +64,14 @@ class ClassInstantiation {
 	}
 
 	function testInstantiateClassWithPostInjection() {
-		var action = Injector.getInjectionMapping( Class(InjectionTest_Post) );
-		var result:InjectionTest_Post = action( injector, "" );
+		var mapping = Injector.getInjectionMapping( InjectionTest_Post );
+		var result:InjectionTest_Post = mapping.mappingFn( injector, "" );
 		Assert.equals( 1, result.postCalled );
 	}
 
 	function testInstantiateCombination() {
-		var action = Injector.getInjectionMapping( Class(InjectionTest_Combination) );
-		var result:InjectionTest_Combination = action( injector, "" );
+		var mapping = Injector.getInjectionMapping( InjectionTest_Combination );
+		var result:InjectionTest_Combination = mapping.mappingFn( injector, "" );
 		Assert.equals( "Jason", result.name );
 		Assert.equals( 28, result.age );
 		Assert.equals( http, result.httpRequest );
@@ -80,8 +80,8 @@ class ClassInstantiation {
 	}
 
 	function testInstantiateCombinationSubClass() {
-		var action = Injector.getInjectionMapping( Class(InjectionTest_Combination_Subclass) );
-		var result:InjectionTest_Combination_Subclass = action( injector, "" );
+		var mapping = Injector.getInjectionMapping( InjectionTest_Combination_Subclass );
+		var result:InjectionTest_Combination_Subclass = mapping.mappingFn( injector, "" );
 		Assert.equals( "Jason", result.name );
 		Assert.equals( 29, result.age );
 		Assert.equals( http, result.httpRequest );
@@ -91,8 +91,8 @@ class ClassInstantiation {
 	}
 
 	function testInstantiateClassWithDefaultValues() {
-		var action = Injector.getInjectionMapping( Class(InjectionTest_DefaultValues) );
-		var result:InjectionTest_DefaultValues = action( injector, "" );
+		var mapping = Injector.getInjectionMapping( InjectionTest_DefaultValues );
+		var result:InjectionTest_DefaultValues = mapping.mappingFn( injector, "" );
 		Assert.equals( "Felix", result.defaultPropertyString );
 		Assert.equals( 1, result.defaultPropertyInt );
 		Assert.equals( null, result.defaultPropertyNull );

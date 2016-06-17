@@ -2,6 +2,7 @@ import utest.Assert;
 import dodrugs.Injector;
 import dodrugs.InjectorMapping;
 import haxe.ds.ArraySort;
+import haxe.ds.StringMap;
 using tink.CoreApi;
 
 @:keep
@@ -9,13 +10,27 @@ class MacroUtils {
 	public function new() {}
 
 	function testInjectionIDs() {
+		// Test Injection IDs for standard types.
 		Assert.equals( "String", Injector.getInjectionId(String) );
 		Assert.equals( "StdTypes.Int", Injector.getInjectionId(Int) );
 		Assert.equals( "StringBuf", Injector.getInjectionId(StringBuf) );
+		Assert.equals( "StdTypes.Int", Injector.getInjectionId("Int") );
+		Assert.equals( "StringBuf", Injector.getInjectionId("StringBuf") );
+		// Test injection IDs for types in packages.
 		Assert.equals( "haxe.ds.ArraySort", Injector.getInjectionId(ArraySort) );
 		Assert.equals( "haxe.crypto.Sha1", Injector.getInjectionId(haxe.crypto.Sha1) );
-		Assert.equals( "StdTypes.Int sessionExpiry", Injector.getInjectionId((sessionExpiry:Int)) );
+		// Test injection IDs that have type parameters
+		Assert.equals( "Array<String>", Injector.getInjectionId("Array<String>") );
+		Assert.equals( "haxe.ds.StringMap<StdTypes.Int>", Injector.getInjectionId("StringMap<Int>") );
+		// Test injection IDs that have a name
+		Assert.equals( "haxe.ds.ArraySort quicksort", Injector.getInjectionId(ArraySort.named("quicksort")) );
+		Assert.equals( "haxe.crypto.Sha1 myhash", Injector.getInjectionId(haxe.crypto.Sha1.named("myhash")) );
+		Assert.equals( "StdTypes.Int sessionExpiry", Injector.getInjectionId(Int.named("sessionExpiry")) );
+		Assert.equals( "Array<StdTypes.Int> magicNumbers", Injector.getInjectionId("Array<Int>".named("magicNumbers")) );
+		// Test the `ECheckType` syntax:
+		Assert.equals( "StringBuf", Injector.getInjectionId((_:StringBuf)) );
 		Assert.equals( "Array<String>", Injector.getInjectionId((_:Array<String>)) );
+		Assert.equals( "StdTypes.Int sessionExpiry", Injector.getInjectionId((sessionExpiry:Int)) );
 		Assert.equals( "Array<StdTypes.Int> magicNumbers", Injector.getInjectionId((magicNumbers:Array<Int>)) );
 	}
 
@@ -32,17 +47,19 @@ class MacroUtils {
 		// var i6 = Injector.create( "test_1", [] );
 	}
 
-	function testMapValue() {
-		var val = Injector.getInjectionMapping( Value(3600) );
-		Assert.same( 3600, val(null,"") );
+	function testGetInjectionMapping() {
+		var result = Injector.getInjectionMapping( Int.toValue(3600) );
+		Assert.same( "StdTypes.Int", result.id );
+		Assert.same( 3600, result.mappingFn(null,"") );
 
-		var fn = function(inj,id) return inj.getValueFromMappingID("test");
-		var val = Injector.getInjectionMapping( Function(fn) );
-		Assert.equals( fn, val );
+		var fn = function(inj,id) return null;
+		var result = Injector.getInjectionMapping( "Array<Int>".named("test").toFunction(fn) );
+		Assert.equals( "Array<StdTypes.Int> test", result.id );
+		Assert.equals( fn, result.mappingFn );
 
 		// Just test these don't throw errors.
 		// We'll check the class instantiation functions in `ClassInstantiation.hx`
-		var val = Injector.getInjectionMapping( Class(Test) );
-		var val = Injector.getInjectionMapping( Singleton(Test) );
+		var result = Injector.getInjectionMapping( Test.toClass(Test) );
+		var result = Injector.getInjectionMapping( haxe.remoting.Connection.toSingleton(haxe.remoting.HttpConnection) );
 	}
 }

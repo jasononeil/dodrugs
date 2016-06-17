@@ -20,9 +20,9 @@ class TestExample {
 
 	function testSecondInjector() {
 		var inj = Injector.create( "test-example-2", [
-			(name:String) => Value("Anna"),
-			(age:Int) => Value(26),
-			(_:Array<Int>) => Value([]),
+			(name:String).toValue("Anna"),
+			Int.named("age").toValue(26),
+			"Array<Int>".toValue([]),
 			Person
 		]);
 		var person = inj.get( Person );

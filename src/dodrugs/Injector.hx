@@ -5,6 +5,18 @@ class Injector<Const> {
 	/**
 	Create a new Injector.
 
+	For an explanation of the valid mapping formats, see the documentation for `getInjectionId` and `getInjectionMapping`.
+	Example:
+
+	```
+	Injector.create("uniqueName", [
+	  Person,
+	  GenericMailApi.toClass( SmtpApi ),
+	  UploadApi.toSingleton( UploadApi ),
+	  Connection.toValue( mysqlCnx )
+	]);
+	```
+
 	@param name The name of this injector. This must be unique and created only once in the entire codebase.
 	@param mappings An array of mapping expressions describing the mappings this injector will provide.
 	@return An `Injector<$name>`, a unique type that extends `InjectorInstance` but safely provides the given mappings.
@@ -28,10 +40,24 @@ class Injector<Const> {
 
 	Valid formats include:
 
-	- Standalone types: `Int`, `String` or `sys.db.Connection`
-	- A type and a name: `(assetPath:String)`
-	- A type with parameters, but no name: `(_:Option<Connecton>)`
-	- A type with parameters and a name: `(db:Option<Connecton>)`
+	- Using a type name directly: `String` becomes "String"
+	- Using an imported type: `Manager` becomes "sys.db.Manager"
+	- Using a full type path: `sys.db.Connection` becomes "sys.db.Connection"
+	- Wrapping a type name in quotes: `"String"` becomes "String"
+	- Using quotes for types with parameters: `"StringMap<Connection>"` becomes "haxe.ds.StringMap<sys.db.Connection>"
+
+	You can then add a particular name to the ID:
+
+	- `String.named('assetPath')` becomes "String assetPath"
+	- `"StringBuf".named('output')` becomes "StringBuf output"
+	- `sys.db.Connection.named('inputServer')` becomes "sys.db.Connection inputServer"
+	- `"Array<Int>".named('favouriteNumbers')` becomes "Array<Int> favouriteNumbers"
+
+	We also support the `ECheckType` syntax of `(name:type)`:
+
+	- `(assetPath:String)` becomes "String assetPath"
+	- `(db:Option<sys.db.Connection>)` becomes "haxe.ds.Option<sys.db.Connection> db"
+	- `(_:StringMap<Int>)` becomes "haxe.ds.StringMap<StdTypes.Int>" (the "_" means no name).
 
 	@param typeExpr The expression describing the type.
 	@return (String) The injection ID in the format `${fully.qualified.TypePath} ${name}` or `${fully.qualified.TypePath}`.
@@ -42,17 +68,24 @@ class Injector<Const> {
 	}
 
 	/**
-	Transform the mapping rule expression into the mapping function used at runtime.
+	Process the injection mapping and return an object with the mapping ID and mapping function.
 
 	Valid formats:
 
 	- `MyClass`
-	- `Value(myValue)`
-	- `Class(MyClass)`
-	- `Singleton(MyClass)`
-	- `Function(function(inj:Injector,mappingID:String):Any { ... })`
+	- `path.toMyClass`
+	- `$mappingID.toClass( SomeClass )`
+	- `$mappingID.toSingleton( SomeClass )`
+	- `$mappingID.toValue( myValue )`
+	- `$mappingID.toFunction( function(injector,id):Any {} )`
+
+	Where `$mappingID` is any of the valid formats described in `getInjectionId`.
+
+	@param The mapping expression.
+	@return An object with the mapping details: `{ id:String, mappingFn:(Injector->String->Any) }`
 	**/
 	public static macro function getInjectionMapping( mappingExpr:haxe.macro.Expr ):haxe.macro.Expr {
-		return InjectorMacro.getInjectionMappingFromExpr( mappingExpr );
+		var mapping = InjectorMacro.processMappingExpr( mappingExpr );
+		return macro { id:$v{mapping.field}, mappingFn:${mapping.expr} };
 	}
 }

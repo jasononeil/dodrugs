@@ -14,10 +14,10 @@ class Example {
 		var array2 = [-1,3,366];
 		return Injector.create( "exampleInjector", [
 			Person,
-			(age:Int) => Value(28),
-			(name:String) => Value("Jason"),
-			(_:Array<Int>) => Value(array),
-			(leastFavouriteNumbers:Array<Int>) => Value(array2),
+			Int.named("age").toValue(28),
+			(name:String).toValue("Jason"),
+			"Array<Int>".toValue(array),
+			"Array<Int>".named("leastFavouriteNumbers").toValue(array2),
 		]);
 	}
 
