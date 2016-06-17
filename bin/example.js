@@ -15,12 +15,12 @@ Example.setupInjector = function() {
 	var array = [0,1,2];
 	var array2 = [-1,3,366];
 	return new dodrugs_instances_InjectorInstance_$exampleInjector(null,{ 'Example.Person' : function(inj,id) {
-		var name = inj.getValueFromMappingID("String name");
+		var name = inj._get("String name");
 		var o = new Person(name);
-		var arr = inj.getValueFromMappingID("Array<StdTypes.Int>");
+		var arr = inj._get("Array<StdTypes.Int>");
 		o.setFavouriteNumbers(arr);
-		o.age = inj.getValueFromMappingID("StdTypes.Int age");
-		o.leastFavouriteNumbers = inj.getOptionalValueFromMappingID("Array<StdTypes.Int> leastFavouriteNumbers",null);
+		o.age = inj._get("StdTypes.Int age");
+		o.leastFavouriteNumbers = inj._tryGet("Array<StdTypes.Int> leastFavouriteNumbers",null);
 		o.afterInjection();
 		return o;
 	}, 'StdTypes.Int age' : function(_,_1) {
@@ -35,7 +35,7 @@ Example.setupInjector = function() {
 };
 Example.buildPerson = function(injector) {
 	{
-		var this1 = injector.getValueFromMappingID("Example.Person");
+		var this1 = injector._get("Example.Person");
 		return this1;
 	}
 };
@@ -56,12 +56,15 @@ var dodrugs_InjectorInstance = function(parent,mappings) {
 	this.mappings = mappings;
 };
 dodrugs_InjectorInstance.prototype = {
-	getValueFromMappingID: function(id) {
-		if(Object.prototype.hasOwnProperty.call(this.mappings,id)) return this.mappings[id](this,id); else if(this.parent != null) return this.parent.getValueFromMappingID(id); else throw new js__$Boot_HaxeError("The injection had no mapping for \"" + id + "\"");
+	getFromID: function(id) {
+		return this._get(id);
 	}
-	,getOptionalValueFromMappingID: function(id,fallback) {
+	,_get: function(id) {
+		if(Object.prototype.hasOwnProperty.call(this.mappings,id)) return this.mappings[id](this,id); else if(this.parent != null) return this.parent.getFromID(id); else throw new js__$Boot_HaxeError("The injection had no mapping for \"" + id + "\"");
+	}
+	,_tryGet: function(id,fallback) {
 		try {
-			return this.getValueFromMappingID(id);
+			return this._get(id);
 		} catch( e ) {
 			if (e instanceof js__$Boot_HaxeError) e = e.val;
 			return fallback;

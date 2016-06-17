@@ -11,20 +11,28 @@ class InjectorInstance {
 		this.mappings = mappings;
 	}
 
-	public function getValueFromMappingID( id:String ):Any {
+	public inline function getFromID( id:String ):Any {
+		return _get( id );
+	}
+
+	function _get( id:String ):Any {
 		return
 			if ( mappings.exists(id) ) mappings[id]( this, id )
-			else if ( this.parent!=null ) this.parent.getValueFromMappingID( id )
+			else if ( this.parent!=null ) this.parent.getFromID( id )
 			else throw 'The injection had no mapping for "$id"';
 	}
 
-	public function getOptionalValueFromMappingID( id:String, fallback:Any ):Any {
+	public inline function tryGetFromID( id:String, fallback:Any ):Any {
+		return _tryGet( id, fallback );
+	}
+
+	function _tryGet( id:String, fallback:Any ):Any {
 		return
-			try getValueFromMappingID( id )
+			try getFromID( id )
 			catch (e:Dynamic) fallback;
 	}
 
-	function getSingleton( mapping:InjectorMapping<Any>, id:String ):Any {
+	function _getSingleton( mapping:InjectorMapping<Any>, id:String ):Any {
 		var val = mappings[id]( this, id );
 		mappings[id] = function(_, _) return val;
 		return val;
@@ -37,17 +45,15 @@ class InjectorInstance {
 
 	This essentially is a shortcut for:
 
-	`injector.getValueFromMappingID( Injector.getInjectionID(MyClass) );`
+	`injector.getFromID( Injector.getInjectionID(MyClass) );`
 
 	@param request The object to request. See `Injector.getInjectionId()` for a description of valid formats.
 	@return The requested object, with all injections applied.
 	@throws (String) An error if the injection cannot be completed.
-
-	TODO: Support a `var cnx:Connection = injector.get()` format using Context.getExpectedType().
 	**/
 	public macro function get( ethis:haxe.macro.Expr, typeExpr:haxe.macro.Expr ):haxe.macro.Expr {
 		var id = InjectorMacro.getInjectionIdFromExpr( typeExpr );
 		var complexType = InjectorMacro.getComplexTypeFromIdExpr( typeExpr );
-		return macro ($ethis.getValueFromMappingID($v{id}):$complexType);
+		return macro ($ethis.getFromID($v{id}):$complexType);
 	}
 }

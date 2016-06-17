@@ -71,7 +71,7 @@ class InjectorMacro {
 			case macro $mappingIDExpr.toSingleton( $classExpr ):
 				var fnExpr = buildClassInstantiationFn( classExpr );
 				result.field = getInjectionIdFromExpr( mappingIDExpr );
-				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.InjectorInstance,id:String):tink.core.Any return @:privateAccess inj.getSingleton( $fnExpr, id );
+				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.InjectorInstance,id:String):tink.core.Any return @:privateAccess inj._getSingleton( $fnExpr, id );
 			case macro $mappingIDExpr.toValue( $e ):
 				result.field = getInjectionIdFromExpr( mappingIDExpr );
 				result.expr = macro @:pos(e.pos) function(_:dodrugs.InjectorInstance, _:String):tink.core.Any return ($e:tink.core.Any);
@@ -290,8 +290,8 @@ class InjectorMacro {
 	static function generateExprToGetValueFromInjetor( type:Type, injectionName:Null<String>, defaultValue:Null<Expr> ):Expr {
 		var injectionID = getInjectionIDAndMarkRequired( type, injectionName, defaultValue!=null );
 		return
-			if ( defaultValue!=null ) macro inj.getOptionalValueFromMappingID( $v{injectionID}, $defaultValue )
-			else macro inj.getValueFromMappingID( $v{injectionID} );
+			if ( defaultValue!=null ) macro inj.tryGetFromID( $v{injectionID}, $defaultValue )
+			else macro inj.getFromID( $v{injectionID} );
 	}
 
 	static function getInjectionIDAndMarkRequired( type:Type, name:String, isOptional:Bool ) {
