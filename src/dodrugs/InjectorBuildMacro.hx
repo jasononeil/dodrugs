@@ -14,7 +14,8 @@ class InjectorBuildMacro {
 			case TInst(_,[param]):
 				switch param {
 					case TInst( _.get() => { kind: KExpr(macro $v{(injectorID:String)})}, [] ):
-						typeToReturn = defineClassForID( injectorID, pos );
+						typeToReturn = macro :dodrugs.InjectorInstance;
+						InjectorMacro.resetInjectorNamesCreatedMetadata();
 					case TDynamic( null ):
 						// If it's Dynamic, we just return a standard `InjectorInstance` with no information about available mappings.
 						typeToReturn = macro :dodrugs.InjectorInstance;
@@ -25,28 +26,5 @@ class InjectorBuildMacro {
 				Context.error( "Expected class with 1 parameter but got "+t.toString(), pos );
 		}
 		return typeToReturn;
-	}
-
-	static function defineClassForID( injectorID:String, p:Position ):ComplexType {
-		var qualifiedClassName = InjectorMacro.getQualifiedInjectorTypeName( injectorID );
-		var classNameParts = qualifiedClassName.split( "." );
-		var className = classNameParts.pop();
-		var typeDefinition = macro class $className extends dodrugs.InjectorInstance {
-		};
-		typeDefinition.pack = classNameParts;
-		typeDefinition.pos = p;
-		// If the type does not already exist, create it.
-		try {
-			Context.getType( qualifiedClassName );
-		}
-		catch ( e:Dynamic ) {
-			Context.defineType( typeDefinition );
-			var type = Context.getType( qualifiedClassName );
-			Context.onMacroContextReused(function() {
-				InjectorMacro.resetHasBeenCreatedMetadata( type );
-				return true;
-			});
-		}
-		return TPath({ name: className, pack: typeDefinition.pack, sub: null, params: null });
 	}
 }

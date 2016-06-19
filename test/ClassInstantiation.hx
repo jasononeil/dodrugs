@@ -18,7 +18,7 @@ class ClassInstantiation {
 		http = new Http( "/" );
 		array = [0,1,2];
 		array2 = [-1,3,366];
-		injector = @:privateAccess new InjectorInstance( null, {
+		injector = @:privateAccess new InjectorInstance( "classInstantiationInjector", null, {
 			"StdTypes.Int age": function(i,_) return 28,
 			"String name": function(i,_) return "Jason",
 			"haxe.Http": function(i,_) return http,

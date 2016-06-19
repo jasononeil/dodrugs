@@ -20,16 +20,10 @@ class InjectorMacro {
 	public static function generateNewInjector( name:String, parent:Expr, mappings:Expr ):Expr {
 		var mappingsExpr = generateMappings( mappings );
 		var pos = Context.currentPos();
+		checkInjectorIsNotAlreadyCreated( name, pos );
 		var param = TPExpr( macro $v{name} );
 		var typePath = "dodrugs.Injector".asTypePath([ param ]);
-		var expr = macro @:pos(pos) @:privateAccess new $typePath( null, $mappingsExpr );
-
-		// Mark the metadata to show this type has been used. We'll need to trigger the type creation first.
-		Context.typeof( expr );
-		var type = Context.getType( getQualifiedInjectorTypeName(name) );
-		checkInjectorIsNotAlreadyCreated( type, name, pos );
-
-		return expr;
+		return macro @:pos(pos) @:privateAccess new $typePath( $v{name}, null, $mappingsExpr );
 	}
 
 	/**
@@ -304,55 +298,71 @@ class InjectorMacro {
 		return id;
 	}
 
-	/**
-	Get the fully qualified TypeName for an Injector with a particular name.
-	@param injectorName The unique name of the injector.
-	@return A String with the fully qualified TypePath for the injector with that name.
-	**/
-	public static function getQualifiedInjectorTypeName( injectorName:String ):String {
-		return 'dodrugs.instances.InjectorInstance_$injectorName';
-	}
+	// /**
+	// Get the fully qualified TypeName for an Injector with a particular name.
+	// @param injectorName The unique name of the injector.
+	// @return A String with the fully qualified TypePath for the injector with that name.
+	// **/
+	// public static function getQualifiedInjectorTypeName( injectorName:String ):String {
+	// 	return 'dodrugs.instances.InjectorInstance_$injectorName';
+	// }
 
 	/**
 	Use metadata to track which injectors have been created, and give errors if an injector name is created multiple times.
 
 	This ensures that each injector is unique to the codebase, and we can know with confidence which rules are available within the injector.
 
-	@param type The `haxe.macro.Type` of the injector (created from the @:genericBuild on `Injector`).
 	@param name The unique name of the injector.
 	@param pos The position to report an error if the unique name has already been used.
 	@throws Generates a compile time error if the Injector has been created more than once in this code base.
 	**/
-	public static function checkInjectorIsNotAlreadyCreated( type:Type, name:String, pos:Position ) {
-		switch type {
+	public static function checkInjectorIsNotAlreadyCreated( name:String, pos:Position ) {
+		switch Context.getType( "dodrugs.InjectorInstance") {
 			case TInst( _.get() => classType, _ ):
-				if ( classType.meta.has(':hasBeenCreated') ) {
-					var oldMeta = Lambda.find( classType.meta.get(), function(m) return m.name==":hasBeenCreated" );
-					var previousPos = oldMeta.pos;
-					Context.warning( 'An Injector named "${name}" was previously created here', previousPos );
-					Context.warning( 'And a different Injector named "${name}" is being created here', pos );
-					Context.error( 'Error: duplicate Injector name used', pos );
+				var nameMetaParam = macro @:pos(pos) $v{name};
+				if ( !classType.meta.has(':injectorNamesCreated') ) {
+					classType.meta.add( ':injectorNamesCreated', [nameMetaParam], pos );
 				}
 				else {
-					classType.meta.add( ':hasBeenCreated', [], pos );
+					var namesCreatedMeta = classType.meta.extract( ':injectorNamesCreated' )[0];
+					var namesUsed = namesCreatedMeta.params;
+					var oldEntry = Lambda.find( namesUsed, function (e) return switch e {
+						case { expr:EConst(CString(nameUsed)), pos:_ }: return nameUsed==name;
+						case _: false;
+					} );
+					if ( oldEntry==null ) {
+						namesUsed.push( nameMetaParam );
+						classType.meta.remove( ':injectorNamesCreated' );
+						classType.meta.add( ':injectorNamesCreated', namesUsed, pos );
+					}
+					else {
+						var previousPos = oldEntry.pos;
+						Context.warning( 'An Injector named "${name}" was previously created here', previousPos );
+						Context.warning( 'And a different Injector named "${name}" is being created here', pos );
+						Context.error( 'Error: duplicate Injector name used', pos );
+					}
 				}
 			case _:
 		}
 	}
 
 	/**
-	Reset the @:hasBeenCreated metadata on a Type.
-	If using the Haxe compilation server, this should be used at the start of each new build.
-	It is currently used on all `@:genericBuild class Injector` builds.
+	Reset the @:injectorNamesCreated metadata on the InjectorInstance type at the start of each build.
 
-	@param type The `haxe.macro.Type` of the injector (created from the @:genericBuild on `Injector`).
+	It is currently called as part of `InjectorBuildMacro.build()`.
+	It has no effect on the building of the class, and is solely used to trigger a `Context.onMacroContextReused` callback to reset the metadata on each build.
+
+	@return Always returns null.
 	**/
-	public static function resetHasBeenCreatedMetadata( type:Type ) {
-		switch type {
-			case TInst( _.get() => classType, _ ):
-				classType.meta.remove( ':hasBeenCreated' );
-			case _:
-		}
+	public static function resetInjectorNamesCreatedMetadata() {
+		Context.onMacroContextReused(function() {
+			switch Context.getType( "dodrugs.InjectorInstance") {
+				case TInst( _.get() => classType, _ ):
+					classType.meta.remove( ':injectorNamesCreated' );
+				case _:
+			}
+			return true;
+		});
 	}
 
 	static function generateMappings( mappings:Expr ):Expr {

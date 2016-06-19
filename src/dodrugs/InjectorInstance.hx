@@ -3,10 +3,12 @@ package dodrugs;
 import tink.core.Any;
 
 class InjectorInstance {
+	public var name(default,null):String;
 	var parent:Null<InjectorInstance>;
 	var mappings:InjectorMappings;
 
-	function new( parent:Null<InjectorInstance>, mappings:InjectorMappings ) {
+	function new( name:String, parent:Null<InjectorInstance>, mappings:InjectorMappings ) {
+		this.name = name;
 		this.parent = parent;
 		this.mappings = mappings;
 	}

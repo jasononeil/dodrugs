@@ -14,7 +14,7 @@ Example.main = function() {
 Example.setupInjector = function() {
 	var array = [0,1,2];
 	var array2 = [-1,3,366];
-	return new dodrugs_instances_InjectorInstance_$exampleInjector(null,{ 'Example.Person' : function(inj,id) {
+	return new dodrugs_InjectorInstance("exampleInjector",null,{ 'Example.Person' : function(inj,id) {
 		var name = inj._get("String name");
 		var o = new Person(name);
 		var arr = inj._get("Array<StdTypes.Int>");
@@ -51,7 +51,8 @@ Person.prototype = {
 		this.ready = true;
 	}
 };
-var dodrugs_InjectorInstance = function(parent,mappings) {
+var dodrugs_InjectorInstance = function(name,parent,mappings) {
+	this.name = name;
 	this.parent = parent;
 	this.mappings = mappings;
 };
@@ -71,12 +72,6 @@ dodrugs_InjectorInstance.prototype = {
 		}
 	}
 };
-var dodrugs_instances_InjectorInstance_$exampleInjector = function(parent,mappings) {
-	dodrugs_InjectorInstance.call(this,parent,mappings);
-};
-dodrugs_instances_InjectorInstance_$exampleInjector.__super__ = dodrugs_InjectorInstance;
-dodrugs_instances_InjectorInstance_$exampleInjector.prototype = $extend(dodrugs_InjectorInstance.prototype,{
-});
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
 	this.val = val;
