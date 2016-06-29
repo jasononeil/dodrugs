@@ -173,7 +173,7 @@ class InjectorMacro {
 				var defaultValue = pair.b;
 				var metaNames = getInjectionNamesFromMetadata( field );
 				var injectionName = (metaNames[0]!="") ? metaNames[0] : null;
-				var getValueExpr = generateExprToGetValueFromInjetor( fieldType, injectionName, defaultValue );
+				var getValueExpr = generateExprToGetValueFromInjector( fieldType, injectionName, defaultValue );
 				var fieldName = field.name;
 				// Note, $getValueExpr is typed as `Any`, but the auto-cast to the intended type produces some verbose JS code.
 				// We're using an unsafe cast here to make sure the JS code is nice and clean.
@@ -269,7 +269,7 @@ class InjectorMacro {
 		var pair = checkIfTypeIsOptional( param.t, defaultValue );
 		var paramType = pair.a;
 		defaultValue = pair.b;
-		return generateExprToGetValueFromInjetor( paramType, injectionName, defaultValue );
+		return generateExprToGetValueFromInjector( paramType, injectionName, defaultValue );
 	}
 
 	static function checkIfTypeIsOptional( t:Type, defaultValue:Null<Expr> ) {
@@ -281,7 +281,7 @@ class InjectorMacro {
 		}
 	}
 
-	static function generateExprToGetValueFromInjetor( type:Type, injectionName:Null<String>, defaultValue:Null<Expr> ):Expr {
+	static function generateExprToGetValueFromInjector( type:Type, injectionName:Null<String>, defaultValue:Null<Expr> ):Expr {
 		var injectionID = getInjectionIDAndMarkRequired( type, injectionName, defaultValue!=null );
 		return
 			if ( defaultValue!=null ) macro inj.tryGetFromID( $v{injectionID}, $defaultValue )
@@ -444,10 +444,27 @@ class InjectorMacro {
 
 	static function formatMappingId( complexType:ComplexType, name:String ) {
 		var complexTypeStr = complexType.toString();
+		// type.toComplex().toString() does not handle const parameters correctly.
+		// For example showing "dodrugs.NamedInjectorInstance<.SclassInstantiationInjector>" instead of dodrugs.NamedInjectorInstance<"classInstantiationInjector">
+		var weirdTypeStr = ~/([a-zA-Z0-9_.]+)<\.S([a-zA-Z0-9]+)>/;
+		if ( weirdTypeStr.match(complexTypeStr) ) {
+			var typeName = weirdTypeStr.matched( 1 );
+			var typeParam = weirdTypeStr.matched( 2 );
+			complexTypeStr = '$typeName<"$typeParam">';
+		}
+		// In case the type has constant type parameters, standardize on double quotes.
+		complexTypeStr = StringTools.replace( complexTypeStr, "\'", "\"" );
 		return (name!=null) ? '${complexTypeStr} ${name}' : complexTypeStr;
 	}
 
 	static function makeTypePathAbsolute( ct:ComplexType, pos:Position ):ComplexType {
+		// If it is dodrugs.Injector<"name">, we don't want to expand that to dodrugs.InjectorInstance.
+		// So we'll manually check for it and make it absolute without calling "toType()".
+		switch ct {
+			case TPath({ pack:[], name:"Injector", params:params }), TPath({ pack:["dodrugs"], name:"Injector", params:params }):
+				return TPath({ pack:["dodrugs"], name:"NamedInjectorInstance", params:params });
+			case _:
+		}
 		return ct.toType( pos ).sure().toComplex();
 	}
 }

@@ -33,6 +33,11 @@ class MacroUtils {
 		Assert.equals( "Array<String>", Injector.getInjectionId((_:Array<String>)) );
 		Assert.equals( "StdTypes.Int sessionExpiry", Injector.getInjectionId((sessionExpiry:Int)) );
 		Assert.equals( "Array<StdTypes.Int> magicNumbers", Injector.getInjectionId((magicNumbers:Array<Int>)) );
+		// Check the injector itself maps correctly.
+		Assert.equals( 'dodrugs.NamedInjectorInstance<"test">', Injector.getInjectionId((_:Injector<"test">)) );
+		Assert.equals( 'dodrugs.NamedInjectorInstance<"test2">', Injector.getInjectionId((_:dodrugs.Injector<"test2">)) );
+		Assert.equals( 'dodrugs.NamedInjectorInstance<"test3">', Injector.getInjectionId('Injector<"test3">') );
+		Assert.equals( 'dodrugs.NamedInjectorInstance<"test4">', Injector.getInjectionId('dodrugs.Injector<"test4">') );
 	}
 
 	function testUniqueNames() {

@@ -135,3 +135,9 @@ class InjectionTest_DefaultValues {
 		this.defaultMethodOptional = optionalValue;
 	}
 }
+
+class InjectionTest_InjectTheInjector {
+	@inject public var injectorInstance:dodrugs.InjectorInstance;
+	@inject public var injector:dodrugs.Injector<"classInstantiationInjector">;
+	public function new() {}
+}

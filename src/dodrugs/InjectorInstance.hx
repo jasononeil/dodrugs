@@ -19,6 +19,9 @@ class InjectorInstance {
 		this.name = name;
 		this.parent = parent;
 		this.mappings = mappings;
+		// Map a copy of the injector itself, if it doesn't already exist
+		if ( !mappings.exists('dodrugs.NamedInjectorInstance<"$name">') )
+			mappings.set( 'dodrugs.NamedInjectorInstance<"$name">', function(_,_) return this );
 	}
 
 	/**

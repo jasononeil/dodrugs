@@ -13,17 +13,20 @@ class ClassInstantiation {
 	var array:Array<Int>;
 	var array2:Array<Int>;
 	var injector:InjectorInstance;
+	var blankInjector:InjectorInstance;
 
 	function setup() {
 		http = new Http( "/" );
 		array = [0,1,2];
 		array2 = [-1,3,366];
+		blankInjector = @:privateAccess new InjectorInstance( "blankInjector", null, {} );
 		injector = @:privateAccess new InjectorInstance( "classInstantiationInjector", null, {
 			"StdTypes.Int age": function(i,_) return 28,
 			"String name": function(i,_) return "Jason",
 			"haxe.Http": function(i,_) return http,
 			"Array<StdTypes.Int>": function(i,_) return array,
 			"Array<StdTypes.Int> leastFavouriteNumbers": function(i,_) return array2,
+			"dodrugs.InjectorInstance": function(i,_) return blankInjector,
 		});
 	}
 
@@ -104,5 +107,12 @@ class ClassInstantiation {
 		Assert.equals( 1, result.defaultMethodInt );
 		Assert.equals( null, result.defaultMethodNull );
 		Assert.equals( null, result.defaultMethodOptional );
+	}
+
+	function testInjectingTheInjector() {
+		var mapping = Injector.getInjectionMapping( InjectionTest_InjectTheInjector );
+		var result:InjectionTest_InjectTheInjector = mapping.mappingFn( injector, "" );
+		Assert.equals( blankInjector.name, result.injectorInstance.name );
+		Assert.equals( injector.name, result.injector.name );
 	}
 }
