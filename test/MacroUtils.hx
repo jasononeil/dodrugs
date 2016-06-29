@@ -1,6 +1,7 @@
 import utest.Assert;
 import dodrugs.Injector;
 import dodrugs.InjectorMapping;
+import dodrugs.InjectorInstance;
 import haxe.ds.ArraySort;
 import haxe.ds.StringMap;
 using tink.CoreApi;
@@ -38,7 +39,7 @@ class MacroUtils {
 		var i1:Injector<"test_1"> = null;
 		var i2:Injector<"test_1"> = null;
 		var i3:Injector<"test_2"> = null;
-		var i4:Injector<Dynamic> = null;
+		var i4:InjectorInstance = null;
 		var i5 = Injector.create( "test_1", [] );
 
 		Assert.equals( "dodrugs.InjectorInstance", Type.getClassName(Type.getClass(i5)) );

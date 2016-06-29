@@ -22,6 +22,8 @@ class InjectorBuildMacro {
 					case _:
 						Context.error( "Expected the type parameter to be a String", pos );
 				}
+			case TInst(_,[]):
+				typeToReturn = macro :dodrugs.InjectorStatics;
 			case t:
 				Context.error( "Expected class with 1 parameter but got "+t.toString(), pos );
 		}

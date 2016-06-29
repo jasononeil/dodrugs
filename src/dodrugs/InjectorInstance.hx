@@ -2,6 +2,14 @@ package dodrugs;
 
 import tink.core.Any;
 
+/**
+InjectorInstance is the implementation class used for each `Injector`.
+
+Every time you see a `Injector<"name">`, it will be an InjectorInstance object.
+
+To create a new InjectorInstance, use `Injector.create()` or `Injector.extend()`.
+See `InjectorStatics` for documentation.
+**/
 class InjectorInstance {
 	public var name(default,null):String;
 	var parent:Null<InjectorInstance>;
@@ -13,6 +21,13 @@ class InjectorInstance {
 		this.mappings = mappings;
 	}
 
+	/**
+	Retrieve a value based on the current injector mappings.
+
+	@param id The string identifier representing the mapping you wish to retrieve.
+	@return The value supplied by the injector mapping. It is typed as `Any`, which can then be cast into the relevant type.
+	@throws (String) An error message if no mapping was found for this ID.
+	**/
 	public inline function getFromID( id:String ):Any {
 		return _get( id );
 	}
@@ -24,7 +39,13 @@ class InjectorInstance {
 			else throw 'The injection had no mapping for "$id"';
 	}
 
-	public inline function tryGetFromID( id:String, fallback:Any ):Any {
+	/**
+	Retrieve a value based on the current injector mappings, and if no mapping is found, use the fallback value.
+
+	@param id The string identifier representing the mapping you wish to retrieve.
+	@return The value supplied by the injector mapping, or if no mapping was found, the fallback value. The return value will have the same type as the fallback value.
+	**/
+	public inline function tryGetFromID<T>( id:String, fallback:T ):T {
 		return _tryGet( id, fallback );
 	}
 
@@ -49,8 +70,8 @@ class InjectorInstance {
 
 	`injector.getFromID( Injector.getInjectionID(MyClass) );`
 
-	@param request The object to request. See `Injector.getInjectionId()` for a description of valid formats.
-	@return The requested object, with all injections applied.
+	@param typeExpr The object to request. See `InjectorStatics.getInjectionId()` for a description of valid formats.
+	@return The requested object, with all injections applied. The return object will be correctly typed as the type you are requesting.
 	@throws (String) An error if the injection cannot be completed.
 	**/
 	public macro function get( ethis:haxe.macro.Expr, typeExpr:haxe.macro.Expr ):haxe.macro.Expr {

@@ -1,7 +1,5 @@
 import dodrugs.*;
 
-import haxe.DynamicAccess;
-
 class Example {
 	static function main() {
 		var injector = setupInjector();
