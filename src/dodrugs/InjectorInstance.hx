@@ -59,7 +59,7 @@ class InjectorInstance {
 	}
 
 	function _getSingleton( mapping:InjectorMapping<Any>, id:String ):Any {
-		var val = mappings[id]( this, id );
+		var val = mapping( this, id );
 		mappings[id] = function(_, _) return val;
 		return val;
 	}
