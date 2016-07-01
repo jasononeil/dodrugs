@@ -23,7 +23,7 @@ class InjectorMacro {
 		checkInjectorIsNotAlreadyCreated( name, pos );
 		var param = TPExpr( macro $v{name} );
 		var typePath = "dodrugs.Injector".asTypePath([ param ]);
-		return macro @:pos(pos) @:privateAccess new $typePath( $v{name}, null, $mappingsExpr );
+		return macro @:pos(pos) @:privateAccess new $typePath( $v{name}, $parent, $mappingsExpr );
 	}
 
 	/**
