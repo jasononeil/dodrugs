@@ -1,0 +1,17 @@
+{
+  "name": "dodrugs",
+  "license": "MIT",
+  "tags": [
+    "injection"
+  ],
+  "classPath": "src",
+  "contributors": [
+    "jasononeil"
+  ],
+  "releasenote": "initial release",
+  "version": "0.0.1",
+  "url": "https://github.com/jasononeil/dodrugs/",
+  "dependencies": {
+    "tink_macro": ""
+  }
+}
