@@ -24,35 +24,37 @@ And this import:
 
 All of your dependencies must be defined in one go:
 
-	var appInjector = Injector.create( "myapp", [
-		// Map a value, class, singleton or function
-		Connection.toValue(existingMysqlCnx),
-		MailApi.toClass(MyMailApi),
-		UFMailer.toSingleton(SmtpMailer),
+```haxe
+var appInjector = Injector.create( "myapp", [
+	// Map a value, class, singleton or function
+	Connection.toValue(existingMysqlCnx),
+	MailApi.toClass(MyMailApi),
+	UFMailer.toSingleton(SmtpMailer),
 
-		// Shortcut for mapping a class to itself:
-		MyMailApi,
-		MyAuthHandler,
+	// Shortcut for mapping a class to itself:
+	MyMailApi,
+	MyAuthHandler,
 
-		// Injection mappings with a specific name:
-		String.named("sessionName").toValue("my_session_ID"),
-		Int.named("sessionExpiry").toValue(3600),
+	// Injection mappings with a specific name:
+	String.named("sessionName").toValue("my_session_ID"),
+	Int.named("sessionExpiry").toValue(3600),
 
-		// And an alternative syntax:
-		(sessionName:String).toValue("my_session_ID"),
-		(sessionExpiry:Int).toValue(3600),
+	// And an alternative syntax:
+	(sessionName:String).toValue("my_session_ID"),
+	(sessionExpiry:Int).toValue(3600),
 
-		// Type parameters need to either be in quotation marks:
-		"Array<String>".toValue([]),
-		"Array<Int>".named("magicNumbers").toValue([3,7,13]),
+	// Type parameters need to either be in quotation marks:
+	"Array<String>".toValue([]),
+	"Array<Int>".named("magicNumbers").toValue([3,7,13]),
 
-		// Or in brackets, using the "CheckType" syntax.
-		// (If you use this syntax but don't want a named injection, use an underscore "_")
-		(_:Array<String>).toValue([]),
-		(magicNumbers:Array<Int>).toValue([3,7,13]),
-	] );
+	// Or in brackets, using the "CheckType" syntax.
+	// (If you use this syntax but don't want a named injection, use an underscore "_")
+	(_:Array<String>).toValue([]),
+	(magicNumbers:Array<Int>).toValue([3,7,13]),
+] );
 
-	$type( appInjector ); // Injector<"myapp">
+$type( appInjector ); // Injector<"myapp">
+```
 
 A quick explanation for each of these:
 
@@ -66,85 +68,95 @@ A quick explanation for each of these:
 
 Constructor injection:
 
-	// Inject a `Connection`
-	@inject
-	public function new( cnx:sys.db.Connection ) {
-		this.cnx = cnx;
-	}
+```haxe
+// Inject a `Connection`
+@inject
+public function new( cnx:sys.db.Connection ) {
+	this.cnx = cnx;
+}
 
-	// Inject a `String` named "assetPath"
-	@inject("assetPath")
-	public function new( path:String ) {
-		this.path = path;
-	}
+// Inject a `String` named "assetPath"
+@inject("assetPath")
+public function new( path:String ) {
+	this.path = path;
+}
 
-	// A combination:
-	@inject("","assetPath")
-	public function new( cnx:Connection, path:String ) {
-		this.cnx = cnx;
-		this.path = path;
-	}
+// A combination:
+@inject("","assetPath")
+public function new( cnx:Connection, path:String ) {
+	this.cnx = cnx;
+	this.path = path;
+}
+```
 
 Property injection:
 
-	// Inject a `String` named "projectName"
-	@inject("projectName") public var projectName:String;
+```haxe
+// Inject a `String` named "projectName"
+@inject("projectName") public var projectName:String;
 
-	// Inject a `Date` named "projectDeadline"
-	@inject("projectDeadline") public var deadline:Date;
+// Inject a `Date` named "projectDeadline"
+@inject("projectDeadline") public var deadline:Date;
 
-	// Inject a `Connection` without a name
-	@inject public var cnx:Connection;
+// Inject a `Connection` without a name
+@inject public var cnx:Connection;
+```
 
 Injection methods:
 
-	// Inject a `Connection`
-	@inject
-	public function setConnection( cnx:Connection ) {
-		this.cnx = cnx;
-	}
+```haxe
+// Inject a `Connection`
+@inject
+public function setConnection( cnx:Connection ) {
+	this.cnx = cnx;
+}
 
-	// Inject a `String` named "assetPath"
-	@inject("assetPath")
-	public function useAssetPath( path:String ) {
-		this.path = path;
-	}
+// Inject a `String` named "assetPath"
+@inject("assetPath")
+public function useAssetPath( path:String ) {
+	this.path = path;
+}
 
-	// A combination:
-	@inject("","assetPath")
-	public function injectData( cnx:Connection, path:String ) {
-		this.cnx = cnx;
-		this.path = path;
-	}
+// A combination:
+@inject("","assetPath")
+public function injectData( cnx:Connection, path:String ) {
+	this.cnx = cnx;
+	this.path = path;
+}
+```
 
 Post injection:
 
-	@post
-	public function injectionHasFinished() {
-		trace( "All done!" );
-	}
+```haxe
+@post
+public function injectionHasFinished() {
+	trace( "All done!" );
+}
+```
 
 Manual injection:
 
-	// Basic:
-	var cnx = appInjector.get( Connection );
-	var mailer = appInjector.get( ufront.mail.UFMailer );
+```haxe
+// Basic:
+var cnx = appInjector.get( Connection );
+var mailer = appInjector.get( ufront.mail.UFMailer );
 
-	// Named Injections:
-	var sessionName = appInjector.get( String.named("sessionName") );
-	var sessionExpiry = appInjector.get( Int.named("sessionExpiry") );
+// Named Injections:
+var sessionName = appInjector.get( String.named("sessionName") );
+var sessionExpiry = appInjector.get( Int.named("sessionExpiry") );
 
-	// Alternative Syntax:
-	var sessionName = appInjector.get( (sessionName:String) );
-	var sessionExpiry = appInjector.get( (sessionExpiry:Int) );
+// Alternative Syntax:
+var sessionName = appInjector.get( (sessionName:String) );
+var sessionExpiry = appInjector.get( (sessionExpiry:Int) );
 
-	// Type parameters:
-	var myArray = appInjector.get( "Array<String>" );
-	var magicNumbers = appInjector.get( "Array<Int>".named("magicNumbers") );
+// Type parameters:
+var myArray = appInjector.get( "Array<String>" );
+var magicNumbers = appInjector.get( "Array<Int>".named("magicNumbers") );
 
-	// CheckType syntax:
-	var myArray = appInjector.get( (_:Array<String>) );
-	var magicNumbers = appInjector.get( (magicNumbers:Array<String>) );
+// CheckType syntax:
+var myArray = appInjector.get( (_:Array<String>) );
+var magicNumbers = appInjector.get( (magicNumbers:Array<String>) );
+```
 
 ### Feel safe:
 
