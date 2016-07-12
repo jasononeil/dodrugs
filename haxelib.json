@@ -1,12 +1,14 @@
 {
   "name": "dodrugs",
   "license": "MIT",
+  "description": "A macro-powered dependency injector for Haxe",
   "tags": [
     "injection"
   ],
   "classPath": "src",
   "contributors": [
-    "jasononeil"
+    "jasononeil",
+    "kevinresol"
   ],
   "releasenote": "initial release",
   "version": "0.0.1",
