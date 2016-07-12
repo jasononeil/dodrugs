@@ -69,6 +69,7 @@ install:
 #  - haxelib install hxjava
 #  - haxelib install hxcs
   - haxelib install tink_macro
+  - haxelib install utest
   - haxelib list
 
 
