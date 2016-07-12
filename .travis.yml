@@ -68,10 +68,12 @@ install:
 #    fi
 #  - haxelib install hxjava
 #  - haxelib install hxcs
-#  - haxelib list
+  - haxelib install tink_macro
+  - haxelib list
+
 
 script:
-  - haxe build-interp.hxml
+#  - haxe build-interp.hxml
   - haxe test.hxml         && neko bin/test.n
   - haxe example.hxml      && neko bin/example.n
 #  - haxe build-js.hxml           && node bin/HelloWorld.js
