@@ -7,6 +7,7 @@ class Test {
 		runner.addCase( new MacroUtils() );
 		runner.addCase( new ClassInstantiation() );
 		runner.addCase( new TestSingletons() );
+		runner.addCase( new TestChildInjector() );
 		runner.addCase( new TestExample() );
 		Report.create( runner );
 		runner.run();
