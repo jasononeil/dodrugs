@@ -35,7 +35,7 @@ class InjectorMacro {
 	public static function getInjectionIdFromExpr( mapType:Expr ):String {
 		var pair = getMappingDetailsFromExpr( mapType );
 		var complexType = makeTypePathAbsolute( pair.a, mapType.pos );
-		return formatMappingId( complexType, pair.b );
+		return getInjectionIDAndMarkSupplied( complexType, pair.b );
 	}
 
 	/**
@@ -282,19 +282,19 @@ class InjectorMacro {
 	}
 
 	static function generateExprToGetValueFromInjector( type:Type, injectionName:Null<String>, defaultValue:Null<Expr> ):Expr {
-		var injectionID = getInjectionIDAndMarkRequired( type, injectionName, defaultValue!=null );
+		var injectionID = getInjectionIDAndMarkRequired( type.toComplex(), injectionName, defaultValue!=null );
 		return
 			if ( defaultValue!=null ) macro inj.tryGetFromID( $v{injectionID}, $defaultValue )
 			else macro inj.getFromID( $v{injectionID} );
 	}
 
-	static function getInjectionIDAndMarkRequired( type:Type, name:String, isOptional:Bool ) {
-		var id = formatMappingId( type.toComplex(), name );
+	static function getInjectionIDAndMarkRequired( complexType:ComplexType, name:String, isOptional:Bool ) {
+		var id = formatMappingId( complexType, name );
 		return id;
 	}
 
-	static function getInjectionIDAndMarkSupplied( type:Type, name:String, isOptional:Bool ) {
-		var id = formatMappingId( type.toComplex(), name );
+	static function getInjectionIDAndMarkSupplied( complexType:ComplexType, name:String ) {
+		var id = formatMappingId( complexType, name );
 		return id;
 	}
 
