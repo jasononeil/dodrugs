@@ -18,6 +18,22 @@ class InjectorMacro {
 	@return An expression that will instantiate a new injector with the mappings appropriately processed.
 	**/
 	public static function generateNewInjector( name:String, parent:Expr, mappings:Expr ):Expr {
+		trace( 'Injector.create("$name", ...)' );
+		Context.defineType({
+			fields: [],
+			isExtern: false,
+			kind: TDAlias(TPath({
+				pack:["dodrugs"],
+				name:"NamedInjectorInstance",
+				sub:null,
+				params:[TPExpr(macro $v{name})]
+			})),
+			meta: null,
+			name: name,
+			pack: ["dodrugs","injector"],
+			params: null,
+			pos: Context.currentPos()
+		});
 		var mappingsExpr = generateMappings( mappings );
 		var pos = Context.currentPos();
 		checkInjectorIsNotAlreadyCreated( name, pos );

@@ -1,6 +1,7 @@
 import dodrugs.*;
 
 class Example {
+
 	static function main() {
 		var injector = setupInjector();
 		var person = buildPerson( injector );

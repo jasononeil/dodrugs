@@ -14,8 +14,8 @@ class InjectorBuildMacro {
 			case TInst(_,[param]):
 				switch param {
 					case TInst( _.get() => { kind: KExpr(macro $v{(injectorID:String)})}, [] ):
-						var idTypeParam = TPExpr(macro $v{injectorID});
-						typeToReturn = TPath({ pack:["dodrugs"], name:"NamedInjectorInstance", sub:null, params:[idTypeParam] });
+						trace('@:genericBuild for Injector<"$injectorID">');
+						typeToReturn = TPath({ pack:["dodrugs","injector"], name:injectorID, sub:null, params:null });
 						InjectorMacro.resetInjectorNamesCreatedMetadata();
 					case TDynamic( null ):
 						// If it's Dynamic, we just return a standard `InjectorInstance` with no information about available mappings.
