@@ -71,14 +71,14 @@ class InjectorInstance {
 
 	This essentially is a shortcut for:
 
-	`injector.getFromID( Injector.getInjectionID(MyClass) );`
+	`injector.getFromID( Injector.getInjectionString(MyClass) );`
 
-	@param typeExpr The object to request. See `InjectorStatics.getInjectionId()` for a description of valid formats.
+	@param typeExpr The object to request. See `InjectorStatics.getInjectionString()` for a description of valid formats.
 	@return The requested object, with all injections applied. The return object will be correctly typed as the type you are requesting.
 	@throws (String) An error if the injection cannot be completed.
 	**/
 	public macro function get( ethis:haxe.macro.Expr, typeExpr:haxe.macro.Expr ):haxe.macro.Expr {
-		var id = InjectorMacro.getInjectionIdFromExpr( typeExpr );
+		var injectionString = InjectorMacro.getInjectionStringFromExpr( typeExpr );
 		var complexType = InjectorMacro.getComplexTypeFromIdExpr( typeExpr );
 		return macro ($ethis.getFromID($v{id}):$complexType);
 	}

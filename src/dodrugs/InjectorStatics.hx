@@ -8,7 +8,7 @@ They can be used as:
 ```
 Injector.create( name, [] );
 Injector.extend( parent, name, [] );
-Injector.getInjectionId( type );
+Injector.getInjectionString( type );
 Injector.getInjectionMapping( mappings );
 ```
 **/
@@ -16,7 +16,7 @@ class InjectorStatics {
 	/**
 	Create a new Injector.
 
-	For an explanation of the valid mapping formats, see the documentation for `getInjectionId` and `getInjectionMapping`.
+	For an explanation of the valid mapping formats, see the documentation for `getInjectionString` and `getInjectionMapping`.
 	Example:
 
 	```
@@ -47,7 +47,7 @@ class InjectorStatics {
 	}
 
 	/**
-	Get the injection ID string for a particular type and or name.
+	Get the injection string for a particular type and or name.
 
 	Valid formats include:
 
@@ -73,8 +73,8 @@ class InjectorStatics {
 	@param typeExpr The expression describing the type.
 	@return (String) The injection ID in the format `${fully.qualified.TypePath} ${name}` or `${fully.qualified.TypePath}`.
 	**/
-	public static macro function getInjectionId( typeExpr:haxe.macro.Expr ):haxe.macro.Expr {
-		var id = InjectorMacro.getInjectionIdFromExpr( typeExpr );
+	public static macro function getInjectionString( typeExpr:haxe.macro.Expr ):haxe.macro.Expr {
+		var id = InjectorMacro.getInjectionStringFromExpr( typeExpr );
 		return macro $v{id};
 	}
 

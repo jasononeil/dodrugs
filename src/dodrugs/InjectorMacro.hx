@@ -27,19 +27,19 @@ class InjectorMacro {
 	}
 
 	/**
-	Find the injection ID for a particular expression.
+	Find the injection mapping string for a particular expression.
 
 	@param mapType The expression representing the type or name we wish to reference.
-	@return The mapping ID as a String.
+	@return The unique mapping string for this mapping type and name.
 	**/
-	public static function getInjectionIdFromExpr( mapType:Expr ):String {
+	public static function getInjectionStringFromExpr( mapType:Expr ):String {
 		var pair = getMappingDetailsFromExpr( mapType );
 		var complexType = makeTypePathAbsolute( pair.a, mapType.pos );
 		return getInjectionIDAndMarkSupplied( complexType, pair.b );
 	}
 
 	/**
-	Find the expected ComplexType based on the same expression used to get the injection ID.
+	Find the expected ComplexType based on the same expression used to get the injection string.
 
 	@param mapType The expression representing the type or name we wish to reference.
 	@return The complex type that this expression represents.

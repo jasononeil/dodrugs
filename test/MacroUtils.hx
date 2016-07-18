@@ -12,32 +12,32 @@ class MacroUtils {
 
 	function testInjectionIDs() {
 		// Test Injection IDs for standard types.
-		Assert.equals( "String", Injector.getInjectionId(String) );
-		Assert.equals( "StdTypes.Int", Injector.getInjectionId(Int) );
-		Assert.equals( "StringBuf", Injector.getInjectionId(StringBuf) );
-		Assert.equals( "StdTypes.Int", Injector.getInjectionId("Int") );
-		Assert.equals( "StringBuf", Injector.getInjectionId("StringBuf") );
+		Assert.equals( "String", Injector.getInjectionString(String) );
+		Assert.equals( "StdTypes.Int", Injector.getInjectionString(Int) );
+		Assert.equals( "StringBuf", Injector.getInjectionString(StringBuf) );
+		Assert.equals( "StdTypes.Int", Injector.getInjectionString("Int") );
+		Assert.equals( "StringBuf", Injector.getInjectionString("StringBuf") );
 		// Test injection IDs for types in packages.
-		Assert.equals( "haxe.ds.ArraySort", Injector.getInjectionId(ArraySort) );
-		Assert.equals( "haxe.crypto.Sha1", Injector.getInjectionId(haxe.crypto.Sha1) );
+		Assert.equals( "haxe.ds.ArraySort", Injector.getInjectionString(ArraySort) );
+		Assert.equals( "haxe.crypto.Sha1", Injector.getInjectionString(haxe.crypto.Sha1) );
 		// Test injection IDs that have type parameters
-		Assert.equals( "Array<String>", Injector.getInjectionId("Array<String>") );
-		Assert.equals( "haxe.ds.StringMap<StdTypes.Int>", Injector.getInjectionId("StringMap<Int>") );
+		Assert.equals( "Array<String>", Injector.getInjectionString("Array<String>") );
+		Assert.equals( "haxe.ds.StringMap<StdTypes.Int>", Injector.getInjectionString("StringMap<Int>") );
 		// Test injection IDs that have a name
-		Assert.equals( "haxe.ds.ArraySort quicksort", Injector.getInjectionId(ArraySort.named("quicksort")) );
-		Assert.equals( "haxe.crypto.Sha1 myhash", Injector.getInjectionId(haxe.crypto.Sha1.named("myhash")) );
-		Assert.equals( "StdTypes.Int sessionExpiry", Injector.getInjectionId(Int.named("sessionExpiry")) );
-		Assert.equals( "Array<StdTypes.Int> magicNumbers", Injector.getInjectionId("Array<Int>".named("magicNumbers")) );
+		Assert.equals( "haxe.ds.ArraySort quicksort", Injector.getInjectionString(ArraySort.named("quicksort")) );
+		Assert.equals( "haxe.crypto.Sha1 myhash", Injector.getInjectionString(haxe.crypto.Sha1.named("myhash")) );
+		Assert.equals( "StdTypes.Int sessionExpiry", Injector.getInjectionString(Int.named("sessionExpiry")) );
+		Assert.equals( "Array<StdTypes.Int> magicNumbers", Injector.getInjectionString("Array<Int>".named("magicNumbers")) );
 		// Test the `ECheckType` syntax:
-		Assert.equals( "StringBuf", Injector.getInjectionId((_:StringBuf)) );
-		Assert.equals( "Array<String>", Injector.getInjectionId((_:Array<String>)) );
-		Assert.equals( "StdTypes.Int sessionExpiry", Injector.getInjectionId((sessionExpiry:Int)) );
-		Assert.equals( "Array<StdTypes.Int> magicNumbers", Injector.getInjectionId((magicNumbers:Array<Int>)) );
+		Assert.equals( "StringBuf", Injector.getInjectionString((_:StringBuf)) );
+		Assert.equals( "Array<String>", Injector.getInjectionString((_:Array<String>)) );
+		Assert.equals( "StdTypes.Int sessionExpiry", Injector.getInjectionString((sessionExpiry:Int)) );
+		Assert.equals( "Array<StdTypes.Int> magicNumbers", Injector.getInjectionString((magicNumbers:Array<Int>)) );
 		// Check the injector itself maps correctly.
-		Assert.equals( 'dodrugs.NamedInjectorInstance<"test">', Injector.getInjectionId((_:Injector<"test">)) );
-		Assert.equals( 'dodrugs.NamedInjectorInstance<"test2">', Injector.getInjectionId((_:dodrugs.Injector<"test2">)) );
-		Assert.equals( 'dodrugs.NamedInjectorInstance<"test3">', Injector.getInjectionId('Injector<"test3">') );
-		Assert.equals( 'dodrugs.NamedInjectorInstance<"test4">', Injector.getInjectionId('dodrugs.Injector<"test4">') );
+		Assert.equals( 'dodrugs.NamedInjectorInstance<"test">', Injector.getInjectionString((_:Injector<"test">)) );
+		Assert.equals( 'dodrugs.NamedInjectorInstance<"test2">', Injector.getInjectionString((_:dodrugs.Injector<"test2">)) );
+		Assert.equals( 'dodrugs.NamedInjectorInstance<"test3">', Injector.getInjectionString('Injector<"test3">') );
+		Assert.equals( 'dodrugs.NamedInjectorInstance<"test4">', Injector.getInjectionString('dodrugs.Injector<"test4">') );
 	}
 
 	function testUniqueNames() {

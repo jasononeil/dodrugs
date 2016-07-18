@@ -9,7 +9,7 @@ Static methods:
 
 - `Injector.create()` - See `InjectorStatics.create()`
 - `Injector.extend()` - See `InjectorStatics.extend()`
-- `Injector.getInjectionId()` - See `InjectorStatics.getInjectionId()`
+- `Injector.getInjectionString()` - See `InjectorStatics.getInjectionString()`
 - `Injector.getInjectionMapping()` - See `InjectorStatics.getInjectionMapping()`
 
 Instance methods:
@@ -37,8 +37,8 @@ class Injector<Const> {
 			return InjectorMacro.generateNewInjector( name, parent, mappings );
 		}
 
-		public static macro function getInjectionId( typeExpr:haxe.macro.Expr ):haxe.macro.Expr {
-			var id = InjectorMacro.getInjectionIdFromExpr( typeExpr );
+		public static macro function getInjectionString( typeExpr:haxe.macro.Expr ):haxe.macro.Expr {
+			var id = InjectorMacro.getInjectionStringFromExpr( typeExpr );
 			return macro $v{id};
 		}
 
