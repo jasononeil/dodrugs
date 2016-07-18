@@ -43,7 +43,7 @@ class Injector<Const> {
 		}
 
 		public static macro function getInjectionMapping( mappingExpr:haxe.macro.Expr ):haxe.macro.Expr {
-			var mapping = InjectorMacro.processMappingExpr( mappingExpr );
+			var mapping = InjectorMacro.processMappingExpr( null, mappingExpr );
 			return macro { id:$v{mapping.field}, mappingFn:${mapping.expr} };
 		}
 	#end

@@ -90,13 +90,13 @@ class InjectorStatics {
 	- `$mappingID.toValue( myValue )`
 	- `$mappingID.toFunction( function(injector,id):Any {} )`
 
-	Where `$mappingID` is any of the valid formats described in `getInjectionId`.
+	Where `$mappingID` is any of the valid formats described in `getInjectionString`.
 
 	@param The mapping expression.
 	@return An object with the mapping details: `{ id:String, mappingFn:(Injector->String->Any) }`
 	**/
 	public static macro function getInjectionMapping( mappingExpr:haxe.macro.Expr ):haxe.macro.Expr {
-		var mapping = InjectorMacro.processMappingExpr( mappingExpr );
+		var mapping = InjectorMacro.processMappingExpr( null, mappingExpr );
 		return macro { id:$v{mapping.field}, mappingFn:${mapping.expr} };
 	}
 }

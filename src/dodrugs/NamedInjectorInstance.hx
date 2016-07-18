@@ -1,3 +1,5 @@
 package dodrugs;
 
-typedef NamedInjectorInstance<Const> = InjectorInstance;
+class NamedInjectorInstance<Const> extends InjectorInstance {
+	
+}

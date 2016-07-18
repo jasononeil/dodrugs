@@ -47,7 +47,7 @@ class MacroUtils {
 		var i4:InjectorInstance = null;
 		var i5 = Injector.create( "test_1", [] );
 
-		Assert.equals( "dodrugs.InjectorInstance", Type.getClassName(Type.getClass(i5)) );
+		Assert.equals( "dodrugs.NamedInjectorInstance", Type.getClassName(Type.getClass(i5)) );
 		Assert.equals( "test_1", i5.name );
 
 		// Compile Time Error:

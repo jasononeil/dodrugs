@@ -19,7 +19,7 @@ class Example {
 		]);
 	}
 
-	public static function buildPerson( injector:InjectorInstance ) {
+	public static function buildPerson( injector:Injector<"exampleInjector"> ) {
 		return injector.get( Person );
 	}
 }

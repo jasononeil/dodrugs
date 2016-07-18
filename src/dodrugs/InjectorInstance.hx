@@ -80,6 +80,13 @@ class InjectorInstance {
 	public macro function get( ethis:haxe.macro.Expr, typeExpr:haxe.macro.Expr ):haxe.macro.Expr {
 		var injectionString = InjectorMacro.getInjectionStringFromExpr( typeExpr );
 		var complexType = InjectorMacro.getComplexTypeFromIdExpr( typeExpr );
-		return macro ($ethis.getFromID($v{id}):$complexType);
+		// Get the Injector ID based on the current type of "this", and mark the current injection string as "required".
+		switch haxe.macro.Context.typeof(ethis) {
+			case TInst( _, [TInst(_.get() => { kind: KExpr({ expr: EConst(CString(injectorID)) }) },[])] ):
+				InjectorMacro.markInjectionStringAsRequired( injectorID, injectionString, typeExpr.pos );
+			case _:
+		}
+
+		return macro ($ethis.getFromID($v{injectionString}):$complexType);
 	}
 }
