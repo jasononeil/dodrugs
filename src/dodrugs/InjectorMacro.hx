@@ -10,8 +10,9 @@ using tink.MacroApi;
 class InjectorMacro {
 
 	inline static var META_INJECTOR_NAMES_CREATED = ":injectorNamesCreated";
-	inline static var META_MAPPINGS_SUPPLIED = ":mappingsSupplied";
-	inline static var META_MAPPINGS_REQUIRED = ":mappingsRequired";
+	inline static var META_INJECTOR_PARENT = ":injectorParent_";
+	inline static var META_MAPPINGS_SUPPLIED = ":mappingsSupplied_";
+	inline static var META_MAPPINGS_REQUIRED = ":mappingsRequired_";
 
 	/**
 	Generate a new `InjectorInstance` (usually a @:genericBuild() from `Injector`) using the given parent and setting up the mappings.
@@ -22,12 +23,18 @@ class InjectorMacro {
 	@return An expression that will instantiate a new injector with the mappings appropriately processed.
 	**/
 	public static function generateNewInjector( name:String, parent:Expr, mappings:Expr ):Expr {
-		var mappingsExpr = generateMappings( name, mappings );
 		var pos = Context.currentPos();
 		checkInjectorIsNotAlreadyCreated( name, pos );
+		// Add metadata to keep track of the parent.
+		var meta = getInjectorInstanceMeta();
+		var metaName = META_INJECTOR_PARENT + name;
+		meta.add( metaName, [parent], pos );
+		// Run a check at the end of compilation to check all injection mappings are there.
+		Context.onGenerate( checkInjectorSuppliesAllRequirements.bind(name,pos) );
+		// Return `new Injector<"id">( name, parent, mappings )`, which will trigger the Injector @:genericBuild.
+		var mappingsExpr = generateMappings( name, mappings );
 		var param = TPExpr( macro $v{name} );
 		var typePath = "dodrugs.Injector".asTypePath([ param ]);
-		Context.onGenerate( checkInjectorSuppliesAllRequirements.bind(name) );
 		return macro @:pos(pos) @:privateAccess new $typePath( $v{name}, $parent, $mappingsExpr );
 	}
 
@@ -102,7 +109,7 @@ class InjectorMacro {
 	@param pos The position where the mapping is required. This will be used to generate error messages in the correct place.
 	**/
 	public static function markInjectionStringAsRequired( injectorID:Null<String>, injectionString:String, pos:Position ) {
-		var metaName = META_MAPPINGS_REQUIRED + "_" + injectorID;
+		var metaName = META_MAPPINGS_REQUIRED + injectorID;
 		markInjectionStringMetadata( metaName, injectionString, pos );
 	}
 
@@ -116,7 +123,7 @@ class InjectorMacro {
 	@param pos The position where the injector is created. This will be used to generate error messages in the correct place.
 	**/
 	public static function markInjectionStringAsSupplied( injectorID:Null<String>, injectionString:String, pos:Position ) {
-		var metaName = META_MAPPINGS_SUPPLIED + "_" + injectorID;
+		var metaName = META_MAPPINGS_SUPPLIED + injectorID;
 		markInjectionStringMetadata( metaName, injectionString, pos );
 	}
 
@@ -507,27 +514,49 @@ class InjectorMacro {
 		return ct.toType( pos ).sure().toComplex();
 	}
 
-	static function checkInjectorSuppliesAllRequirements( injectorID:String, types:Array<Type> ) {
-		var suppliedMetaName = META_MAPPINGS_SUPPLIED + "_" + injectorID;
-		var requiredMetaName = META_MAPPINGS_REQUIRED + "_" + injectorID;
-		for (t in types) if (t.toString()=="dodrugs.DynamicInjectorInstance") switch t {
-			case TInst(_.get().meta => meta,_):
-				var requiredMappingsMeta = meta.extract(requiredMetaName)[0];
-				if ( requiredMappingsMeta!=null ) {
-					var requiredMappings = requiredMappingsMeta.params;
-					var suppliedTypesMeta = meta.extract(suppliedMetaName)[0];
-					var suppliedTypes = suppliedTypesMeta.params.map(function(e) return e.getString().sure());
-					for ( requiredMapping in requiredMappings ) {
-						var mapping = requiredMapping.getString().sure();
-						var isSupplied = suppliedTypes.indexOf( mapping ) > -1;
-						if ( !isSupplied ) {
-							var mappingName = StringTools.replace( mapping, ' ', ' named ' );
-							Context.warning('Mapping "$mappingName" is required here', requiredMapping.pos);
-							Context.error('Please make sure you provide a mapping for "$mappingName" here', suppliedTypesMeta.pos);
-						}
-					}
+	static function checkInjectorSuppliesAllRequirements( injectorID:String, creationPos:Position, types:Array<Type> ) {
+		var requiredMetaName = META_MAPPINGS_REQUIRED + injectorID;
+		var meta = getInjectorInstanceMeta();
+
+		// Collect all the supplied injections for this injector and it's parent.
+		var suppliedTypes = [];
+		while ( injectorID!=null ) {
+			var parentMetaName = META_INJECTOR_PARENT + injectorID;
+			var suppliedMetaName = META_MAPPINGS_SUPPLIED + injectorID;
+			var suppliedTypesMeta = meta.extract( suppliedMetaName )[0];
+			if ( suppliedTypesMeta!=null ) {
+				for ( expr in suppliedTypesMeta.params )
+					suppliedTypes.push( expr.getString().sure() );
+			}
+			// See if there is a parent injector.
+			if ( meta.extract( parentMetaName )[0]==null )
+				// There is no metadata, meaning Injector.create() or Injector.extend() was never called.
+				Context.error( 'Parent Injector $injectorID does not exist', creationPos );
+			var parentExpr = meta.extract( parentMetaName )[0].params[0];
+			switch parentExpr {
+				case macro null:
+					// Injector.create() was called, rather than extend(), so there is no parent.
+					injectorID = null;
+				case { expr: EConst(CIdent(id)), pos: _ }:
+					injectorID = id;
+					trace( "drill down into "+injectorID );
+				case _:
+					throw 'Internal Error: '+parentExpr;
+			}
+		}
+
+		// Collect all the required injections and check they're supplied.
+		var requiredMappingsMeta = meta.extract(requiredMetaName)[0];
+		if ( requiredMappingsMeta!=null ) {
+			for ( requiredMapping in requiredMappingsMeta.params ) {
+				var mapping = requiredMapping.getString().sure();
+				var isSupplied = suppliedTypes.indexOf( mapping ) > -1;
+				if ( !isSupplied ) {
+					var mappingName = StringTools.replace( mapping, ' ', ' named ' );
+					Context.warning('Mapping "$mappingName" is required here', requiredMapping.pos);
+					Context.error('Please make sure you provide a mapping for "$mappingName" here', creationPos);
 				}
-			case _:
+			}
 		}
 	}
 }
