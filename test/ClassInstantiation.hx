@@ -12,8 +12,8 @@ class ClassInstantiation {
 	var http:Http;
 	var array:Array<Int>;
 	var array2:Array<Int>;
-	var injector:InjectorInstance;
-	var blankInjector:InjectorInstance;
+	var injector:InjectorInstance<"classInstantiationInjector">;
+	var blankInjector:DynamicInjectorInstance;
 
 	function setup() {
 		http = new Http( "/" );
@@ -26,7 +26,7 @@ class ClassInstantiation {
 			"haxe.Http": function(i,_) return http,
 			"Array<StdTypes.Int>": function(i,_) return array,
 			"Array<StdTypes.Int> leastFavouriteNumbers": function(i,_) return array2,
-			"dodrugs.InjectorInstance": function(i,_) return blankInjector,
+			"dodrugs.DynamicInjectorInstance": function(i,_) return blankInjector,
 		});
 	}
 

@@ -1,3 +1,3 @@
 package dodrugs;
 
-typedef InjectorMapping<T> = InjectorInstance->String->T;
+typedef InjectorMapping<T> = DynamicInjectorInstance->String->T;

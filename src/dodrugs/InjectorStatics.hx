@@ -30,7 +30,7 @@ class InjectorStatics {
 
 	@param name The name of this injector. This must be unique and created only once in the entire codebase.
 	@param mappings An array of mapping expressions describing the mappings this injector will provide.
-	@return An `Injector<$name>`, a unique type that extends `InjectorInstance` but safely provides the given mappings.
+	@return An `Injector<$name>`, a unique type that extends `DynamicInjectorInstance` but safely provides the given mappings.
 	**/
 	@:noUsing
 	public static macro function create( name:String, mappings:haxe.macro.Expr ):haxe.macro.Expr {

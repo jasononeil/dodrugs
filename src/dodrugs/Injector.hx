@@ -3,7 +3,7 @@ package dodrugs;
 /**
 The main class for setting up and interacting with an injector.
 
-Because of the way we have set up the `@:genericBuild` macro, the API documentaton is split between `InjectorStatics` and `InjectorInstance`.
+Because of the way we have set up the `@:genericBuild` macro, the API documentaton is split between `InjectorStatics` and `DynamicInjectorInstance`.
 
 Static methods:
 
@@ -14,9 +14,9 @@ Static methods:
 
 Instance methods:
 
-- `myInjector.getFromID()` - See `InjectorInstance.getFromID()`
-- `myInjector.tryGetFromID()` - See `InjectorInstance.tryGetFromID()`
-- `myInjector.get()` - See `InjectorInstance.get()`
+- `myInjector.getFromID()` - See `DynamicInjectorInstance.getFromID()`
+- `myInjector.tryGetFromID()` - See `DynamicInjectorInstance.tryGetFromID()`
+- `myInjector.get()` - See `DynamicInjectorInstance.get()`
 **/
 @:genericBuild(dodrugs.InjectorBuildMacro.build())
 class Injector<Const> {
