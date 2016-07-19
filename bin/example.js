@@ -46,12 +46,18 @@ Person.prototype = {
 		this.ready = true;
 	}
 };
-var dodrugs_InjectorInstance = function(name,parent,mappings) {
+var dodrugs_DynamicInjectorInstance = function(name,parent,mappings) {
+	var _gthis = this;
 	this.name = name;
 	this.parent = parent;
 	this.mappings = mappings;
+	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.InjectorInstance<\"" + name + "\">")) {
+		mappings["dodrugs.InjectorInstance<\"" + name + "\">"] = function(_,_1) {
+			return _gthis;
+		};
+	}
 };
-dodrugs_InjectorInstance.prototype = {
+dodrugs_DynamicInjectorInstance.prototype = {
 	getFromID: function(id) {
 		return this._get(id);
 	}
@@ -72,6 +78,12 @@ dodrugs_InjectorInstance.prototype = {
 		}
 	}
 };
+var dodrugs_InjectorInstance = function(name,parent,mappings) {
+	dodrugs_DynamicInjectorInstance.call(this,name,parent,mappings);
+};
+dodrugs_InjectorInstance.__super__ = dodrugs_DynamicInjectorInstance;
+dodrugs_InjectorInstance.prototype = $extend(dodrugs_DynamicInjectorInstance.prototype,{
+});
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
 	this.val = val;
