@@ -1,7 +1,5 @@
 import utest.Assert;
-import dodrugs.Injector;
-import dodrugs.InjectorMapping;
-import dodrugs.DynamicInjectorInstance;
+import dodrugs.*;
 import haxe.ds.ArraySort;
 import haxe.ds.StringMap;
 using tink.CoreApi;
@@ -34,10 +32,10 @@ class MacroUtils {
 		Assert.equals( "StdTypes.Int sessionExpiry", Injector.getInjectionString((sessionExpiry:Int)) );
 		Assert.equals( "Array<StdTypes.Int> magicNumbers", Injector.getInjectionString((magicNumbers:Array<Int>)) );
 		// Check the injector itself maps correctly.
-		Assert.equals( 'dodrugs.InjectorInstance<"test">', Injector.getInjectionString((_:Injector<"test">)) );
-		Assert.equals( 'dodrugs.InjectorInstance<"test2">', Injector.getInjectionString((_:dodrugs.Injector<"test2">)) );
-		Assert.equals( 'dodrugs.InjectorInstance<"test3">', Injector.getInjectionString('Injector<"test3">') );
-		Assert.equals( 'dodrugs.InjectorInstance<"test4">', Injector.getInjectionString('dodrugs.Injector<"test4">') );
+		Assert.equals( 'dodrugs.Injector<"test">', Injector.getInjectionString((_:Injector<"test">)) );
+		Assert.equals( 'dodrugs.Injector<"test2">', Injector.getInjectionString((_:dodrugs.Injector<"test2">)) );
+		Assert.equals( 'dodrugs.Injector<"test3">', Injector.getInjectionString('Injector<"test3">') );
+		Assert.equals( 'dodrugs.Injector<"test4">', Injector.getInjectionString('dodrugs.Injector<"test4">') );
 	}
 
 	function testUniqueNames() {
@@ -47,7 +45,7 @@ class MacroUtils {
 		var i4:DynamicInjectorInstance = null;
 		var i5 = Injector.create( "test_1", [] );
 
-		Assert.equals( "dodrugs.InjectorInstance", Type.getClassName(Type.getClass(i5)) );
+		Assert.equals( "dodrugs.Injector", Type.getClassName(Type.getClass(i5)) );
 		Assert.equals( "test_1", i5.name );
 
 		// Compile Time Error:

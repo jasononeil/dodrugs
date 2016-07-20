@@ -1,7 +1,6 @@
 import utest.Assert;
 import InjectionTestClasses;
 import dodrugs.*;
-import dodrugs.InjectorMapping;
 import haxe.Http;
 using tink.CoreApi;
 
@@ -12,7 +11,7 @@ class ClassInstantiation {
 	var http:Http;
 	var array:Array<Int>;
 	var array2:Array<Int>;
-	var injector:InjectorInstance<"classInstantiationInjector">;
+	var injector:Injector<"classInstantiationInjector">;
 	var blankInjector:DynamicInjectorInstance;
 
 	function setup() {
@@ -20,7 +19,7 @@ class ClassInstantiation {
 		array = [0,1,2];
 		array2 = [-1,3,366];
 		blankInjector = @:privateAccess new DynamicInjectorInstance( null, {} );
-		injector = @:privateAccess new InjectorInstance( "classInstantiationInjector", null, {
+		injector = @:privateAccess new Injector( "classInstantiationInjector", null, {
 			"StdTypes.Int age": function(i,_) return 28,
 			"String name": function(i,_) return "Jason",
 			"haxe.Http": function(i,_) return http,

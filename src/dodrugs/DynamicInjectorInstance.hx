@@ -7,7 +7,7 @@ DynamicInjectorInstance supplies the basic injection infrastructure to record ma
 
 It is `Dynamic` in the sense that it doesn't hold any information about which injector you are using, and provides no compile-time safety for checking if a value is injected as expected.
 
-In general you should use `Injector<"my_id">` instead of `DynamicInjector`. (Or `InjectorInstance<"my_id">`, which is the same thing).
+In general you should use `Injector<"my_id">` instead of `DynamicInjector`.
 **/
 class DynamicInjectorInstance {
 	var parent:Null<DynamicInjectorInstance>;

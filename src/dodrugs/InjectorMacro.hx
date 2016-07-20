@@ -15,7 +15,7 @@ class InjectorMacro {
 	inline static var META_MAPPINGS_REQUIRED = ":mappingsRequired_";
 
 	/**
-	Generate a new `InjectorInstance` (usually a @:genericBuild() from `Injector`) using the given parent and setting up the mappings.
+	Generate a new `Injector` instance using the given name and parent, and setting up the mappings.
 
 	@param name The unique name of this injector.
 	@param name An expression for the parent injector, or `null`.
@@ -26,7 +26,7 @@ class InjectorMacro {
 		var pos = Context.currentPos();
 		checkInjectorIsNotAlreadyCreated( name, pos );
 		// Add metadata to keep track of the parent.
-		var meta = getInjectorInstanceMeta();
+		var meta = getInjectorMeta();
 		var metaName = META_INJECTOR_PARENT + name;
 		meta.add( metaName, [parent], pos );
 		// Run a check at the end of compilation to check all injection mappings are there.
@@ -337,7 +337,7 @@ class InjectorMacro {
 	}
 
 	static function markInjectionStringMetadata( metaName:String, injectionString:String, pos:Position ) {
-		var meta = getInjectorInstanceMeta();
+		var meta = getInjectorMeta();
 		var injectionStringParam = macro @:pos(pos) $v{injectionString};
 		if ( !meta.has(metaName) ) {
 			meta.add( metaName, [injectionStringParam], pos );
@@ -350,12 +350,12 @@ class InjectorMacro {
 		}
 	}
 
-	static function getInjectorInstanceMeta() {
+	static function getInjectorMeta() {
 		switch Context.getType("dodrugs.DynamicInjectorInstance") {
 			case TInst( _.get() => classType, _ ):
 				return classType.meta;
 			default:
-				return throw 'InjectorInstance should have been a class';
+				return throw 'Injector should have been a class';
 		}
 	}
 
@@ -369,7 +369,7 @@ class InjectorMacro {
 	@throws Generates a compile time error if the Injector has been created more than once in this code base.
 	**/
 	public static function checkInjectorIsNotAlreadyCreated( name:String, pos:Position ) {
-		var meta = getInjectorInstanceMeta();
+		var meta = getInjectorMeta();
 		var nameMetaParam = macro @:pos(pos) $v{name};
 		if ( !meta.has(META_INJECTOR_NAMES_CREATED) ) {
 			meta.add( META_INJECTOR_NAMES_CREATED, [nameMetaParam], pos );
@@ -396,19 +396,21 @@ class InjectorMacro {
 	}
 
 	/**
-	Reset the @:injectorNamesCreated metadata on the InjectorInstance type at the start of each build.
+	A build macro triggered on `Injector` that will reset Injector metadata on each build when using the compiler cache.
 
-	It is currently called as part of `InjectorBuildMacro.build()`.
 	It has no effect on the building of the class, and is solely used to trigger a `Context.onMacroContextReused` callback to reset the metadata on each build.
+
+	TODO: test this, and see if META_INJECTOR_PARENT, META_MAPPINGS_REQUIRED, and META_MAPPINGS_SUPPLIED need resetting also.
 
 	@return Always returns null.
 	**/
-	public static function resetInjectorNamesCreatedMetadata() {
+	public static function resetInjectorMetadata() {
 		Context.onMacroContextReused(function() {
-			var meta = getInjectorInstanceMeta();
+			var meta = getInjectorMeta();
 			meta.remove( META_INJECTOR_NAMES_CREATED );
 			return true;
 		});
+		return null;
 	}
 
 	static function generateMappings( injectorID:Null<String>, mappings:Expr ):Expr {
@@ -491,7 +493,7 @@ class InjectorMacro {
 	static function formatMappingId( complexType:ComplexType, name:String ) {
 		var complexTypeStr = complexType.toString();
 		// type.toComplex().toString() does not handle const parameters correctly.
-		// For example showing "dodrugs.InjectorInstance<.SclassInstantiationInjector>" instead of dodrugs.InjectorInstance<"classInstantiationInjector">
+		// For example showing "dodrugs.Injector<.SclassInstantiationInjector>" instead of dodrugs.Injector<"classInstantiationInjector">
 		var weirdTypeStr = ~/([a-zA-Z0-9_.]+)<\.S([a-zA-Z0-9]+)>/;
 		if ( weirdTypeStr.match(complexTypeStr) ) {
 			var typeName = weirdTypeStr.matched( 1 );
@@ -508,7 +510,7 @@ class InjectorMacro {
 		// So we'll manually check for it and make it absolute without calling "toType()".
 		switch ct {
 			case TPath({ pack:[], name:"Injector", params:params }), TPath({ pack:["dodrugs"], name:"Injector", params:params }):
-				return TPath({ pack:["dodrugs"], name:"InjectorInstance", params:params });
+				return TPath({ pack:["dodrugs"], name:"Injector", params:params });
 			case _:
 		}
 		return ct.toType( pos ).sure().toComplex();
@@ -516,7 +518,7 @@ class InjectorMacro {
 
 	static function checkInjectorSuppliesAllRequirements( injectorID:String, creationPos:Position, types:Array<Type> ) {
 		var requiredMetaName = META_MAPPINGS_REQUIRED + injectorID;
-		var meta = getInjectorInstanceMeta();
+		var meta = getInjectorMeta();
 
 		// Collect all the supplied injections for this injector and it's parent.
 		var suppliedTypes = [];
