@@ -3,21 +3,21 @@ package dodrugs;
 import tink.core.Any;
 
 /**
-DynamicInjectorInstance supplies the basic injection infrastructure to record mappings and provide values.
+DynamicInjector supplies the basic injection infrastructure to record mappings and provide values.
 
 It is `Dynamic` in the sense that it doesn't hold any information about which injector you are using, and provides no compile-time safety for checking if a value is injected as expected.
 
 In general you should use `Injector<"my_id">` instead of `DynamicInjector`.
 **/
-class DynamicInjectorInstance {
-	var parent:Null<DynamicInjectorInstance>;
+class DynamicInjector {
+	var parent:Null<DynamicInjector>;
 	var mappings:InjectorMappings;
 
-	function new( parent:Null<DynamicInjectorInstance>, mappings:InjectorMappings ) {
+	function new( parent:Null<DynamicInjector>, mappings:InjectorMappings ) {
 		this.parent = parent;
 		this.mappings = mappings;
-		if ( !mappings.exists('dodrugs.DynamicInjectorInstance') )
-			mappings.set( 'dodrugs.DynamicInjectorInstance', function(_,_) return this );
+		if ( !mappings.exists('dodrugs.DynamicInjector') )
+			mappings.set( 'dodrugs.DynamicInjector', function(_,_) return this );
 	}
 
 	/**

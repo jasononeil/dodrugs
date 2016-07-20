@@ -42,7 +42,7 @@ class MacroUtils {
 		var i1:Injector<"test_1"> = null;
 		var i2:Injector<"test_1"> = null;
 		var i3:Injector<"test_2"> = null;
-		var i4:DynamicInjectorInstance = null;
+		var i4:DynamicInjector = null;
 		var i5 = Injector.create( "test_1", [] );
 
 		Assert.equals( "dodrugs.Injector", Type.getClassName(Type.getClass(i5)) );

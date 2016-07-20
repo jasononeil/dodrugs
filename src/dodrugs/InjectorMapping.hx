@@ -38,4 +38,4 @@ function injectorMapping(inj,mappingStr) {
 }
 ```
 **/
-typedef InjectorMapping<T> = DynamicInjectorInstance->String->T;
+typedef InjectorMapping<T> = DynamicInjector->String->T;

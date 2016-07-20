@@ -81,10 +81,10 @@ class InjectorMacro {
 			case macro $mappingIDExpr.toSingleton( $classExpr ):
 				var fnExpr = buildClassInstantiationFn( injectorID, classExpr );
 				result.field = getInjectionStringFromExpr( mappingIDExpr );
-				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.DynamicInjectorInstance,id:String):tink.core.Any return @:privateAccess inj._getSingleton( $fnExpr, id );
+				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.DynamicInjector,id:String):tink.core.Any return @:privateAccess inj._getSingleton( $fnExpr, id );
 			case macro $mappingIDExpr.toValue( $e ):
 				result.field = getInjectionStringFromExpr( mappingIDExpr );
-				result.expr = macro @:pos(e.pos) function(_:dodrugs.DynamicInjectorInstance, _:String):tink.core.Any return ($e:tink.core.Any);
+				result.expr = macro @:pos(e.pos) function(_:dodrugs.DynamicInjector, _:String):tink.core.Any return ($e:tink.core.Any);
 			case macro $mappingIDExpr.toFunction( $fn ):
 				result.field = getInjectionStringFromExpr( mappingIDExpr );
 				result.expr = fn;
@@ -103,7 +103,7 @@ class InjectorMacro {
 
 
 	/**
-	Add special metadata to DynamicInjectorInstance noting that this injection is required somewhere in the code base.
+	Add special metadata to DynamicInjector noting that this injection is required somewhere in the code base.
 
 	This will be used to check all required mappings are supplied during `Context.onGenerate()`, and produce helpful error messages otherwise.
 
@@ -117,7 +117,7 @@ class InjectorMacro {
 	}
 
 	/**
-	Add special metadata to DynamicInjectorInstance noting that this injection is supplied when the injector is created.
+	Add special metadata to DynamicInjector noting that this injection is supplied when the injector is created.
 
 	This will be used to check all required mappings are supplied during `Context.onGenerate()`, and produce helpful error messages otherwise.
 
@@ -153,7 +153,7 @@ class InjectorMacro {
 
 		var allLines = [for (arr in [constructorLines,methodInjections,propertyInjections,postInjections]) for (line in arr) line];
 		allLines.push( macro return (o:tink.core.Any) );
-		return macro @:pos(p) function(inj:dodrugs.DynamicInjectorInstance,id:String):tink.core.Any $b{allLines}
+		return macro @:pos(p) function(inj:dodrugs.DynamicInjector,id:String):tink.core.Any $b{allLines}
 	}
 
 	static function getConstructorExpressions( injectorID:Null<String>, type:ClassType, typePath:TypePath, pos:Position ):Array<Expr> {
@@ -354,7 +354,7 @@ class InjectorMacro {
 	}
 
 	static function getInjectorMeta() {
-		switch Context.getType("dodrugs.DynamicInjectorInstance") {
+		switch Context.getType("dodrugs.DynamicInjector") {
 			case TInst( _.get() => classType, _ ):
 				return classType.meta;
 			default:
@@ -509,7 +509,7 @@ class InjectorMacro {
 	}
 
 	static function makeTypePathAbsolute( ct:ComplexType, pos:Position ):ComplexType {
-		// If it is dodrugs.Injector<"name">, we don't want to expand that to dodrugs.DynamicInjectorInstance.
+		// If it is dodrugs.Injector<"name">, we don't want to expand that to dodrugs.DynamicInjector.
 		// So we'll manually check for it and make it absolute without calling "toType()".
 		switch ct {
 			case TPath({ pack:[], name:"Injector", params:params }), TPath({ pack:["dodrugs"], name:"Injector", params:params }):
