@@ -46,13 +46,12 @@ Person.prototype = {
 		this.ready = true;
 	}
 };
-var dodrugs_DynamicInjectorInstance = function(name,parent,mappings) {
+var dodrugs_DynamicInjectorInstance = function(parent,mappings) {
 	var _gthis = this;
-	this.name = name;
 	this.parent = parent;
 	this.mappings = mappings;
-	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.InjectorInstance<\"" + name + "\">")) {
-		mappings["dodrugs.InjectorInstance<\"" + name + "\">"] = function(_,_1) {
+	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.DynamicInjectorInstance")) {
+		mappings["dodrugs.DynamicInjectorInstance"] = function(_,_1) {
 			return _gthis;
 		};
 	}
@@ -79,7 +78,14 @@ dodrugs_DynamicInjectorInstance.prototype = {
 	}
 };
 var dodrugs_InjectorInstance = function(name,parent,mappings) {
-	dodrugs_DynamicInjectorInstance.call(this,name,parent,mappings);
+	var _gthis = this;
+	dodrugs_DynamicInjectorInstance.call(this,parent,mappings);
+	this.name = name;
+	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.InjectorInstance<\"" + name + "\">")) {
+		mappings["dodrugs.InjectorInstance<\"" + name + "\">"] = function(_,_1) {
+			return _gthis;
+		};
+	}
 };
 dodrugs_InjectorInstance.__super__ = dodrugs_DynamicInjectorInstance;
 dodrugs_InjectorInstance.prototype = $extend(dodrugs_DynamicInjectorInstance.prototype,{

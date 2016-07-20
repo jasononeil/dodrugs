@@ -3,25 +3,21 @@ package dodrugs;
 import tink.core.Any;
 
 /**
-DynamicInjectorInstance is the implementation class used for each `Injector`.
+DynamicInjectorInstance supplies the basic injection infrastructure to record mappings and provide values.
 
-Every time you see a `Injector<"name">`, it will be an DynamicInjectorInstance object.
+It is `Dynamic` in the sense that it doesn't hold any information about which injector you are using, and provides no compile-time safety for checking if a value is injected as expected.
 
-To create a new DynamicInjectorInstance, use `Injector.create()` or `Injector.extend()`.
-See `InjectorStatics.create()` and `InjectorStatics.extent()` for documentation.
+In general you should use `Injector<"my_id">` instead of `DynamicInjector`. (Or `InjectorInstance<"my_id">`, which is the same thing).
 **/
 class DynamicInjectorInstance {
-	public var name(default,null):String;
 	var parent:Null<DynamicInjectorInstance>;
 	var mappings:InjectorMappings;
 
-	function new( name:String, parent:Null<DynamicInjectorInstance>, mappings:InjectorMappings ) {
-		this.name = name;
+	function new( parent:Null<DynamicInjectorInstance>, mappings:InjectorMappings ) {
 		this.parent = parent;
 		this.mappings = mappings;
-		// Map a copy of the injector itself, if it doesn't already exist
-		if ( !mappings.exists('dodrugs.InjectorInstance<"$name">') )
-			mappings.set( 'dodrugs.InjectorInstance<"$name">', function(_,_) return this );
+		if ( !mappings.exists('dodrugs.DynamicInjectorInstance') )
+			mappings.set( 'dodrugs.DynamicInjectorInstance', function(_,_) return this );
 	}
 
 	/**
