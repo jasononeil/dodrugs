@@ -7,6 +7,9 @@ using haxe.macro.Tools;
 using tink.CoreApi;
 using tink.MacroApi;
 
+/**
+Macros used internally by `dodrugs.Injector`.
+**/
 class InjectorMacro {
 
 	inline static var META_INJECTOR_NAMES_CREATED = ":injectorNamesCreated";
