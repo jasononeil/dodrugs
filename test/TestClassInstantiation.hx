@@ -5,7 +5,7 @@ import haxe.Http;
 using tink.CoreApi;
 
 @:keep
-class ClassInstantiation {
+class TestClassInstantiation {
 	public function new() {}
 
 	var http:Http;

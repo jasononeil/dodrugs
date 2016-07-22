@@ -5,7 +5,7 @@ import haxe.ds.StringMap;
 using tink.CoreApi;
 
 @:keep
-class MacroUtils {
+class TestMacroUtils {
 	public function new() {}
 
 	function testInjectionIDs() {
