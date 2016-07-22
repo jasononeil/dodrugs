@@ -14,7 +14,7 @@ Example.main = function() {
 Example.setupInjector = function() {
 	var array = [0,1,2];
 	var array2 = [-1,3,366];
-	return new dodrugs_InjectorInstance("exampleInjector",null,{ 'Example.Person' : function(inj,id) {
+	return new dodrugs_Injector("exampleInjector",null,{ 'Example.Person' : function(inj,id) {
 		var o = new Person(inj._get("String name"));
 		o.setFavouriteNumbers(inj._get("Array<StdTypes.Int>"));
 		o.age = inj._get("StdTypes.Int age");
@@ -46,12 +46,17 @@ Person.prototype = {
 		this.ready = true;
 	}
 };
-var dodrugs_InjectorInstance = function(name,parent,mappings) {
-	this.name = name;
+var dodrugs_DynamicInjector = function(parent,mappings) {
+	var _gthis = this;
 	this.parent = parent;
 	this.mappings = mappings;
+	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.DynamicInjector")) {
+		mappings["dodrugs.DynamicInjector"] = function(_,_1) {
+			return _gthis;
+		};
+	}
 };
-dodrugs_InjectorInstance.prototype = {
+dodrugs_DynamicInjector.prototype = {
 	getFromID: function(id) {
 		return this._get(id);
 	}
@@ -72,6 +77,19 @@ dodrugs_InjectorInstance.prototype = {
 		}
 	}
 };
+var dodrugs_Injector = function(name,parent,mappings) {
+	var _gthis = this;
+	dodrugs_DynamicInjector.call(this,parent,mappings);
+	this.name = name;
+	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.Injector<\"" + name + "\">")) {
+		mappings["dodrugs.Injector<\"" + name + "\">"] = function(_,_1) {
+			return _gthis;
+		};
+	}
+};
+dodrugs_Injector.__super__ = dodrugs_DynamicInjector;
+dodrugs_Injector.prototype = $extend(dodrugs_DynamicInjector.prototype,{
+});
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
 	this.val = val;

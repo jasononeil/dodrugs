@@ -1,7 +1,6 @@
 import utest.Assert;
 import InjectionTestClasses;
 import dodrugs.*;
-import dodrugs.InjectorMapping;
 import haxe.Http;
 using tink.CoreApi;
 
@@ -12,21 +11,21 @@ class ClassInstantiation {
 	var http:Http;
 	var array:Array<Int>;
 	var array2:Array<Int>;
-	var injector:InjectorInstance;
-	var blankInjector:InjectorInstance;
+	var injector:Injector<"classInstantiationInjector">;
+	var blankInjector:DynamicInjector;
 
 	function setup() {
 		http = new Http( "/" );
 		array = [0,1,2];
 		array2 = [-1,3,366];
-		blankInjector = @:privateAccess new InjectorInstance( "blankInjector", null, {} );
-		injector = @:privateAccess new InjectorInstance( "classInstantiationInjector", null, {
+		blankInjector = @:privateAccess new DynamicInjector( null, {} );
+		injector = @:privateAccess new Injector( "classInstantiationInjector", null, {
 			"StdTypes.Int age": function(i,_) return 28,
 			"String name": function(i,_) return "Jason",
 			"haxe.Http": function(i,_) return http,
 			"Array<StdTypes.Int>": function(i,_) return array,
 			"Array<StdTypes.Int> leastFavouriteNumbers": function(i,_) return array2,
-			"dodrugs.InjectorInstance": function(i,_) return blankInjector,
+			"dodrugs.DynamicInjector": function(i,_) return blankInjector,
 		});
 	}
 
@@ -112,7 +111,7 @@ class ClassInstantiation {
 	function testInjectingTheInjector() {
 		var mapping = Injector.getInjectionMapping( InjectionTest_InjectTheInjector );
 		var result:InjectionTest_InjectTheInjector = mapping.mappingFn( injector, "" );
-		Assert.equals( blankInjector.name, result.injectorInstance.name );
+		Assert.equals( blankInjector, result.injectorInstance );
 		Assert.equals( injector.name, result.injector.name );
 	}
 }

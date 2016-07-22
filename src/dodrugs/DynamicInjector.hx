@@ -3,25 +3,21 @@ package dodrugs;
 import tink.core.Any;
 
 /**
-InjectorInstance is the implementation class used for each `Injector`.
+DynamicInjector supplies the basic injection infrastructure to record mappings and provide values.
 
-Every time you see a `Injector<"name">`, it will be an InjectorInstance object.
+It is `Dynamic` in the sense that it doesn't hold any information about which injector you are using, and provides no compile-time safety for checking if a value is injected as expected.
 
-To create a new InjectorInstance, use `Injector.create()` or `Injector.extend()`.
-See `InjectorStatics` for documentation.
+In general you should use `Injector<"my_id">` instead of `DynamicInjector`.
 **/
-class InjectorInstance {
-	public var name(default,null):String;
-	var parent:Null<InjectorInstance>;
+class DynamicInjector {
+	var parent:Null<DynamicInjector>;
 	var mappings:InjectorMappings;
 
-	function new( name:String, parent:Null<InjectorInstance>, mappings:InjectorMappings ) {
-		this.name = name;
+	function new( parent:Null<DynamicInjector>, mappings:InjectorMappings ) {
 		this.parent = parent;
 		this.mappings = mappings;
-		// Map a copy of the injector itself, if it doesn't already exist
-		if ( !mappings.exists('dodrugs.NamedInjectorInstance<"$name">') )
-			mappings.set( 'dodrugs.NamedInjectorInstance<"$name">', function(_,_) return this );
+		if ( !mappings.exists('dodrugs.DynamicInjector') )
+			mappings.set( 'dodrugs.DynamicInjector', function(_,_) return this );
 	}
 
 	/**
@@ -71,15 +67,22 @@ class InjectorInstance {
 
 	This essentially is a shortcut for:
 
-	`injector.getFromID( Injector.getInjectionID(MyClass) );`
+	`injector.getFromID( Injector.getInjectionString(MyClass) );`
 
-	@param typeExpr The object to request. See `InjectorStatics.getInjectionId()` for a description of valid formats.
+	@param typeExpr The object to request. See `InjectorStatics.getInjectionString()` for a description of valid formats.
 	@return The requested object, with all injections applied. The return object will be correctly typed as the type you are requesting.
 	@throws (String) An error if the injection cannot be completed.
 	**/
 	public macro function get( ethis:haxe.macro.Expr, typeExpr:haxe.macro.Expr ):haxe.macro.Expr {
-		var id = InjectorMacro.getInjectionIdFromExpr( typeExpr );
+		var injectionString = InjectorMacro.getInjectionStringFromExpr( typeExpr );
 		var complexType = InjectorMacro.getComplexTypeFromIdExpr( typeExpr );
-		return macro ($ethis.getFromID($v{id}):$complexType);
+		// Get the Injector ID based on the current type of "this", and mark the current injection string as "required".
+		switch haxe.macro.Context.typeof(ethis) {
+			case TInst( _, [TInst(_.get() => { kind: KExpr({ expr: EConst(CString(injectorID)) }) },[])] ):
+				InjectorMacro.markInjectionStringAsRequired( injectorID, injectionString, typeExpr.pos );
+			case _:
+		}
+
+		return macro ($ethis.getFromID($v{injectionString}):$complexType);
 	}
 }

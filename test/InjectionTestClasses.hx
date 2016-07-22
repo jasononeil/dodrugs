@@ -137,7 +137,7 @@ class InjectionTest_DefaultValues {
 }
 
 class InjectionTest_InjectTheInjector {
-	@inject public var injectorInstance:dodrugs.InjectorInstance;
+	@inject public var injectorInstance:dodrugs.DynamicInjector;
 	@inject public var injector:dodrugs.Injector<"classInstantiationInjector">;
 	public function new() {}
 }
