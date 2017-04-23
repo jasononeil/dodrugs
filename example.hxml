@@ -12,3 +12,4 @@
 
 -js bin/example.js
 -D js-es5
+-D analyzer-optimize
