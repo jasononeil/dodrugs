@@ -30,12 +30,10 @@ Example.buildPerson = function(injector) {
 	return injector._get("Example.Person");
 };
 var Person = function(name,age,arr,arr2) {
-	this.ready = false;
 	this.name = name;
 	this.age = age;
 	this.favouriteNumbers = arr;
 	this.leastFavouriteNumbers = arr2;
-	this.ready = true;
 };
 var dodrugs_DynamicInjector = function(parent,mappings) {
 	var _gthis = this;

@@ -25,7 +25,6 @@ class Example {
 }
 
 class Person {
-	public var ready = false;
 	public var name:String;
 	public var age:Int;
 	public var favouriteNumbers:Array<Int>;
@@ -37,6 +36,5 @@ class Person {
 		this.age = age;
 		this.favouriteNumbers = arr;
 		this.leastFavouriteNumbers = arr2;
-		this.ready = true;
 	}
 }
