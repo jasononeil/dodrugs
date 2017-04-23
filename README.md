@@ -187,8 +187,7 @@ You should never get an "Injector has no rule for type ..." error message again.
  4. #### Minimal runtime dependencies.
 
 	We have a compile time dependency on `tink_core` and `tink_macro`.
-
-	In our runtime code, though only part of tink_core we use is `tink.core.Any`, which is a safer replacement for `Dynamic`, and will not require any extra code to be included at runtime.
+	These are not included in the generated code.
 
 	Again, look at the generated `bin/example.js` to see how compact the resulting code can be.
 

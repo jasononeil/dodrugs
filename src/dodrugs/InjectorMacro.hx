@@ -3,7 +3,8 @@ package dodrugs;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
-using tink.CoreApi;
+import tink.core.Outcome;
+import tink.core.Pair;
 using tink.MacroApi;
 
 /**
@@ -92,10 +93,10 @@ class InjectorMacro {
 			case macro $mappingIDExpr.toSingleton( $classExpr ):
 				var fnExpr = buildClassInstantiationFn( injectorID, classExpr );
 				result.field = getInjectionStringFromExpr( mappingIDExpr );
-				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.DynamicInjector,id:String):tink.core.Any return @:privateAccess inj._getSingleton( $fnExpr, id );
+				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.DynamicInjector,id:String):Any return @:privateAccess inj._getSingleton( $fnExpr, id );
 			case macro $mappingIDExpr.toValue( $e ):
 				result.field = getInjectionStringFromExpr( mappingIDExpr );
-				result.expr = macro @:pos(e.pos) function(_:dodrugs.DynamicInjector, _:String):tink.core.Any return ($e:tink.core.Any);
+				result.expr = macro @:pos(e.pos) function(_:dodrugs.DynamicInjector, _:String):Any return ($e:Any);
 			case macro $mappingIDExpr.toFunction( $fn ):
 				result.field = getInjectionStringFromExpr( mappingIDExpr );
 				result.expr = fn;
@@ -163,8 +164,8 @@ class InjectorMacro {
 		var postInjections = getPostInjectionExpressions( targetClassType, p );
 
 		var allLines = [for (arr in [constructorLines,methodInjections,propertyInjections,postInjections]) for (line in arr) line];
-		allLines.push( macro return (o:tink.core.Any) );
-		return macro @:pos(p) function(inj:dodrugs.DynamicInjector,id:String):tink.core.Any $b{allLines}
+		allLines.push( macro return (o:Any) );
+		return macro @:pos(p) function(inj:dodrugs.DynamicInjector,id:String):Any $b{allLines}
 	}
 
 	static function getConstructorExpressions( injectorID:Null<String>, type:ClassType, typePath:TypePath, pos:Position ):Array<Expr> {
@@ -439,7 +440,7 @@ class InjectorMacro {
 				mappings.reject( 'Injector rules should be provided using Map Literal syntax.' );
 		}
 		var objDecl = { expr:EObjectDecl(mappingRules), pos:mappings.pos };
-		return macro ($objDecl:haxe.DynamicAccess<dodrugs.InjectorMapping<tink.core.Any>>);
+		return macro ($objDecl:haxe.DynamicAccess<dodrugs.InjectorMapping<Any>>);
 	}
 
 	/**

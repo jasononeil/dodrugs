@@ -2,7 +2,6 @@ import utest.Assert;
 import InjectionTestClasses;
 import dodrugs.*;
 import haxe.Http;
-using tink.CoreApi;
 
 @:keep
 class TestClassInstantiation {

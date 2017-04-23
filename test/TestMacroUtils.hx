@@ -2,7 +2,6 @@ import utest.Assert;
 import dodrugs.*;
 import haxe.ds.ArraySort;
 import haxe.ds.StringMap;
-using tink.CoreApi;
 
 @:keep
 class TestMacroUtils {

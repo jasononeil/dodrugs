@@ -1,7 +1,5 @@
 package dodrugs;
 
-import tink.core.Any;
-
 /**
 DynamicInjector supplies the basic injection infrastructure to record mappings and provide values.
 
