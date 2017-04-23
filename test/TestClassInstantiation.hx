@@ -20,11 +20,11 @@ class TestClassInstantiation {
 		blankInjector = @:privateAccess new DynamicInjector( null, {} );
 		injector = @:privateAccess new Injector( "classInstantiationInjector", null, {
 			"StdTypes.Int age": function(i,_) return 28,
-			"String name": function(i,_) return "Jason",
-			"haxe.Http": function(i,_) return http,
-			"Array<StdTypes.Int>": function(i,_) return array,
-			"Array<StdTypes.Int> leastFavouriteNumbers": function(i,_) return array2,
-			"dodrugs.DynamicInjector": function(i,_) return blankInjector,
+			"String.String name": function(i,_) return "Jason",
+			"haxe.Http.Http": function(i,_) return http,
+			"Array.Array<StdTypes.Int>": function(i,_) return array,
+			"Array.Array<StdTypes.Int> leastFavouriteNumbers": function(i,_) return array2,
+			"dodrugs.DynamicInjector.DynamicInjector": function(i,_) return blankInjector,
 		});
 	}
 

@@ -41,8 +41,8 @@ var dodrugs_DynamicInjector = function(parent,mappings) {
 	var _gthis = this;
 	this.parent = parent;
 	this.mappings = mappings;
-	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.DynamicInjector")) {
-		mappings["dodrugs.DynamicInjector"] = function(_,_1) {
+	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.DynamicInjector.DynamicInjector")) {
+		mappings["dodrugs.DynamicInjector.DynamicInjector"] = function(_,_1) {
 			return _gthis;
 		};
 	}
@@ -72,8 +72,8 @@ var dodrugs_Injector = function(name,parent,mappings) {
 	var _gthis = this;
 	dodrugs_DynamicInjector.call(this,parent,mappings);
 	this.name = name;
-	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.Injector<\"" + name + "\">")) {
-		mappings["dodrugs.Injector<\"" + name + "\">"] = function(_,_1) {
+	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.Injector.Injector<\"" + name + "\">")) {
+		mappings["dodrugs.Injector.Injector<\"" + name + "\">"] = function(_,_1) {
 			return _gthis;
 		};
 	}

@@ -118,8 +118,8 @@ class Injector<Const> extends DynamicInjector {
 	function new( name:String, parent:Null<DynamicInjector>, mappings:InjectorMappings ) {
 		super( parent, mappings );
 		this.name = name;
-		if ( !mappings.exists('dodrugs.Injector<"$name">') )
-			mappings.set( 'dodrugs.Injector<"$name">', function(_,_) return this );
+		if ( !mappings.exists('dodrugs.Injector.Injector<"$name">') )
+			mappings.set( 'dodrugs.Injector.Injector<"$name">', function(_,_) return this );
 	}
 
 	/**

@@ -14,8 +14,8 @@ class DynamicInjector {
 	function new( parent:Null<DynamicInjector>, mappings:InjectorMappings ) {
 		this.parent = parent;
 		this.mappings = mappings;
-		if ( !mappings.exists('dodrugs.DynamicInjector') )
-			mappings.set( 'dodrugs.DynamicInjector', function(_,_) return this );
+		if ( !mappings.exists('dodrugs.DynamicInjector.DynamicInjector') )
+			mappings.set( 'dodrugs.DynamicInjector.DynamicInjector', function(_,_) return this );
 	}
 
 	/**
