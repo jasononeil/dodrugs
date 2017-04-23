@@ -159,13 +159,7 @@ class InjectorMacro {
 			case _: throw 'assert';
 		}
 		var constructorLines = getConstructorExpressions( injectorID, targetClassType, targetTypePath, p );
-		var methodInjections = getMethodInjectionExpressions( injectorID, targetClassType, p );
-		var propertyInjections = getPropertyInjectionExpressions( injectorID, targetClassType, p );
-		var postInjections = getPostInjectionExpressions( targetClassType, p );
-
-		var allLines = [for (arr in [constructorLines,methodInjections,propertyInjections,postInjections]) for (line in arr) line];
-		allLines.push( macro return (o:Any) );
-		return macro @:pos(p) function(inj:dodrugs.DynamicInjector,id:String):Any $b{allLines}
+		return macro @:pos(p) function(inj:dodrugs.DynamicInjector,id:String):Any $b{constructorLines};
 	}
 
 	static function getConstructorExpressions( injectorID:Null<String>, type:ClassType, typePath:TypePath, pos:Position ):Array<Expr> {
@@ -177,71 +171,8 @@ class InjectorMacro {
 			constructorArguments.push( argPair.a );
 			constructorLines.push( argPair.b );
 		}
-		constructorLines.push( macro @:pos(pos) var o = new $typePath($a{constructorArguments}) );
+		constructorLines.push( macro @:pos(pos) return new $typePath($a{constructorArguments}) );
 		return constructorLines;
-	}
-
-	static function getMethodInjectionExpressions( injectorID:Null<String>, type:ClassType, pos:Position ):Array<Expr> {
-		var injectionExprs = [];
-		var injectionFields = getPublicInstanceFieldsWithMeta( type, 'inject' );
-		for ( field in injectionFields ) {
-			if ( field.kind.match(FMethod(_)) ) {
-				var fieldName = field.name;
-				var fnArguments = [];
-				var fnArgumentLines = getArgumentsForMethodInjection( injectorID, field, pos );
-				for ( argPair in fnArgumentLines ) {
-					fnArguments.push( argPair.a );
-					injectionExprs.push( argPair.b );
-				}
-				var callFnExpr = macro @:pos(pos) o.$fieldName( $a{fnArguments} );
-				injectionExprs.push( callFnExpr );
-			}
-		}
-		return injectionExprs;
-	}
-
-	static function getPostInjectionExpressions( type:ClassType, pos:Position ):Array<Expr> {
-		var injectionExprs = [];
-		var injectionFields = getPublicInstanceFieldsWithMeta( type, 'post' );
-		for ( field in injectionFields ) {
-			switch [field.kind, field.expr().expr] {
-				case [FMethod(_), TFunction({ args:methodArgs, expr:_, t:_ })]:
-					if ( methodArgs.length==0 ) {
-						var fieldName = field.name;
-						var callFnExpr = macro @:pos(pos) o.$fieldName();
-						injectionExprs.push( callFnExpr );
-					}
-					else {
-						Context.error( '@post functions should not have function arguments, but ${field.name}() has ${methodArgs.length} function arguments', field.pos );
-					}
-				case _:
-					Context.warning( 'Internal Injector Error: ${field.name} is not a method', field.pos );
-			}
-		}
-		return injectionExprs;
-	}
-
-	static function getPropertyInjectionExpressions( injectorID:Null<String>, type:ClassType, pos:Position ):Array<Expr> {
-		var injectionExprs:Array<Expr> = [];
-		var injectionFields = getPublicInstanceFieldsWithMeta( type, 'inject' );
-		for ( field in injectionFields ) {
-			if ( field.kind.match(FVar(_,_)) ) {
-				var typedExpr = field.expr();
-				var defaultValue = ( typedExpr!=null ) ? Context.getTypedExpr(typedExpr) : null;
-				var pair = checkIfTypeIsOptional( field.type, defaultValue );
-				var fieldType = pair.a;
-				var defaultValue = pair.b;
-				var metaNames = getInjectionNamesFromMetadata( field );
-				var injectionName = (metaNames[0]!="") ? metaNames[0] : null;
-				var getValueExpr = generateExprToGetValueFromInjector( injectorID, fieldType, injectionName, defaultValue, field.pos );
-				var fieldName = field.name;
-				// Note, $getValueExpr is typed as `Any`, but the auto-cast to the intended type produces some verbose JS code.
-				// We're using an unsafe cast here to make sure the JS code is nice and clean.
-				var setPropExpr = macro @:pos(pos) o.$fieldName = cast $getValueExpr;
-				injectionExprs.push( setPropExpr );
-			}
-		}
-		return injectionExprs;
 	}
 
 	static function getConstructorForType( classType:ClassType, pos:Position ):Outcome<ClassField,Error> {
@@ -254,21 +185,6 @@ class InjectorMacro {
 			return getConstructorForType( superClassType, pos );
 		}
 		return Failure( new Error('The type ${classType.name} has no constructor',pos) );
-	}
-
-	static function getPublicInstanceFieldsWithMeta( classType:ClassType, metaName:String ):Array<ClassField> {
-		var fields = [for (f in classType.fields.get()) if (f.isPublic && f.meta.has(metaName)) f];
-		if ( classType.superClass!=null ) {
-			// TODO: see if it is useful for us to support type parameters.
-			var superClassType = classType.superClass.t.get();
-			var existingFields = getPublicInstanceFieldsWithMeta( superClassType, metaName );
-			for ( f1 in existingFields ) {
-				if ( !Lambda.exists(fields,function(f2) return f1.name==f2.name) ) {
-					fields.unshift( f1 );
-				}
-			}
-		}
-		return fields;
 	}
 
 	static function getArgumentsForMethodInjection( injectorID:Null<String>, method:ClassField, injectionPos:Position ):Array<Pair<Expr,Expr>> {

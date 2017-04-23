@@ -46,65 +46,13 @@ class TestClassInstantiation {
 		Assert.equals( 0, result.favouriteNumbers.length );
 	}
 
-	function testInstantiateClassWithPropertyInjection() {
-		var mapping = Injector.getInjectionMapping( InjectionTest_Properties );
-		var result:InjectionTest_Properties = mapping.mappingFn( injector, "" );
-		Assert.equals( "Jason", result.name );
-		Assert.equals( 28, result.age );
-		Assert.equals( http, result.httpRequest );
-		Assert.equals( array, result.favouriteNumbers );
-	}
-
-	function testInstantiateClassWithMethodInjection() {
-		var mapping = Injector.getInjectionMapping( InjectionTest_Method );
-		var result:InjectionTest_Method = mapping.mappingFn( injector, "" );
-		Assert.equals( "Jason", result.name );
-		Assert.equals( 28, result.age );
-		Assert.equals( http, result.httpRequest );
-		Assert.equals( array, result.favouriteNumbers );
-	}
-
-	function testInstantiateClassWithPostInjection() {
-		var mapping = Injector.getInjectionMapping( InjectionTest_Post );
-		var result:InjectionTest_Post = mapping.mappingFn( injector, "" );
-		Assert.equals( 1, result.postCalled );
-	}
-
-	function testInstantiateCombination() {
-		var mapping = Injector.getInjectionMapping( InjectionTest_Combination );
-		var result:InjectionTest_Combination = mapping.mappingFn( injector, "" );
-		Assert.equals( "Jason", result.name );
-		Assert.equals( 28, result.age );
-		Assert.equals( http, result.httpRequest );
-		Assert.equals( array, result.favouriteNumbers );
-		Assert.equals( 1, result.postCalled );
-	}
-
-	function testInstantiateCombinationSubClass() {
-		var mapping = Injector.getInjectionMapping( InjectionTest_Combination_Subclass );
-		var result:InjectionTest_Combination_Subclass = mapping.mappingFn( injector, "" );
-		Assert.equals( "Jason", result.name );
-		Assert.equals( 29, result.age );
-		Assert.equals( http, result.httpRequest );
-		Assert.same( [3,33,333], result.favouriteNumbers );
-		Assert.same( [-1,3,366], result.leastFavouriteNumbers );
-		Assert.equals( 2, result.postCalled );
-	}
-
 	function testInstantiateClassWithDefaultValues() {
 		var mapping = Injector.getInjectionMapping( InjectionTest_DefaultValues );
 		var result:InjectionTest_DefaultValues = mapping.mappingFn( injector, "" );
-		Assert.equals( "Felix", result.defaultPropertyString );
-		Assert.equals( 1, result.defaultPropertyInt );
-		Assert.equals( null, result.defaultPropertyNull );
 		Assert.equals( "Felix", result.defaultConstructorString );
 		Assert.equals( 1, result.defaultConstructorInt );
 		Assert.equals( null, result.defaultConstructorNull );
 		Assert.equals( null, result.defaultConstructorOptional );
-		Assert.equals( "Felix", result.defaultMethodString );
-		Assert.equals( 1, result.defaultMethodInt );
-		Assert.equals( null, result.defaultMethodNull );
-		Assert.equals( null, result.defaultMethodOptional );
 	}
 
 	function testInjectingTheInjector() {
