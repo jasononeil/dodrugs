@@ -3,7 +3,6 @@ package dodrugs;
 import haxe.macro.Expr;
 import haxe.macro.Type;
 import haxe.macro.Context;
-using haxe.macro.Tools;
 using tink.CoreApi;
 using tink.MacroApi;
 
