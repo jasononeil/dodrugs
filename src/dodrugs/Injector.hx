@@ -18,17 +18,18 @@ This way the compiler knows exactly which mappings are available for `Injector<"
 At runtime, we store injector mappings as strings.
 
 These strings are usually made up of the type name, a space, and then name used for this mapping.
-For example, a String named "sessionName" will use the injection string "String sessionName".
-And an Int named "sessionExpiry" will use the injection string "StdTypes.Int sessionExpiry".
+The type name includes the package, the module name, and the type name.
+For example, a String with the ID "sessionName" will use the injection string "String.String sessionName".
+And an Int with the ID "sessionExpiry" will use the injection string "StdTypes.Int sessionExpiry".
 
 All of the type parameters are included in the injection strings.
-For example "Array<StdTypes.Int> favouriteNumbers".
+For example "Array.Array<StdTypes.Int> favouriteNumbers".
 
-The type names are fully qualified.
-For example instead of "Connection dbCnx" we would get "sys.db.Connection dbCnx".
+The type names are fully qualified, and include the module name.
+For example instead of "Connection dbCnx" we would get "sys.db.Connection.Connection dbCnx".
 
 If the injection mapping is just for the type, without a specific name, we just use the typename.
-For example, "String", "StdTypes.Int", "Array<StdTypes.Int" or "sys.db.Connection".
+For example, "String.String", "StdTypes.Int", "Array.Array<StdTypes.Int>" or "sys.db.Connection.Connection".
 
 ### Generating Injection Strings
 
@@ -37,18 +38,18 @@ But usually, you will want to use special macro-powered syntax.
 
 Valid formats include:
 
-- Using a type name directly: `String` becomes "String"
-- Using an imported type: `Manager` becomes "sys.db.Manager"
-- Using a full type path: `sys.db.Connection` becomes "sys.db.Connection"
-- Wrapping a type name in quotes: `"String"` becomes "String"
-- Using quotes for types with parameters: `"StringMap<Connection>"` becomes "haxe.ds.StringMap<sys.db.Connection>"
+- Using a type name directly: `String` becomes "String.String"
+- Using an imported type: `Manager` becomes "sys.db.Manager.Manager"
+- Using a full type path: `sys.db.Connection` becomes "sys.db.Connection.Connection"
+- Wrapping a type name in quotes: `"String"` becomes "String.String"
+- Using quotes for types with parameters: `"StringMap<Connection>"` becomes "haxe.ds.StringMap.StringMap<sys.db.Connection.Connection>"
 
 You can then add a particular name to the ID:
 
-- `String.named('assetPath')` becomes "String assetPath"
-- `"StringBuf".named('output')` becomes "StringBuf output"
-- `sys.db.Connection.named('inputServer')` becomes "sys.db.Connection inputServer"
-- `"Array<Int>".named('favouriteNumbers')` becomes "Array<Int> favouriteNumbers"
+- `String.withId('assetPath')` becomes "String assetPath"
+- `"StringBuf".withId('output')` becomes "StringBuf output"
+- `sys.db.Connection.withId('inputServer')` becomes "sys.db.Connection inputServer"
+- `"Array<Int>".withId('favouriteNumbers')` becomes "Array<Int> favouriteNumbers"
 
 We also support the `ECheckType` syntax of `(name:type)`:
 
@@ -96,10 +97,10 @@ var requestInjector = Injector.extend( "current_request", appInjector, [
 	HttpResponse.toValue( context.httpResponse ),
 	UFHttpSession.toValue( context.currentSession ),
 	UFAuthUser.toValue( context.currentUser ),
-	String.named("userID").toValue( context.currentUserID )
+	String.withId("userID").toValue( context.currentUserID )
 ] );
 $type(appInjector); // Injector<"current_request">
-requestInjector.get( String.named("userID") );
+requestInjector.get( String.withId("userID") );
 requestInjector.get( (userID:String) );
 requestInjector.get( Person ); // from the parent injector.
 ```

@@ -12,15 +12,15 @@ class TestSingletons {
 			( name:String ).toValue( "Jason" ),
 			( _:Array<Int> ).toValue( [1,2,3] ),
 			( leastFavouriteNumbers:Array<Int> ).toValue( [7,13,21] ),
-			Person.named( "class mapping" ).toClass( Person ),
-			Person.named( "singleton mapping" ).toSingleton( Person )
+			Person.withId( "class mapping" ).toClass( Person ),
+			Person.withId( "singleton mapping" ).toSingleton( Person )
 		] );
 
-		var p1 = injector.get( Person.named("class mapping") );
-		var p2 = injector.get( Person.named("class mapping") );
+		var p1 = injector.get( Person.withId("class mapping") );
+		var p2 = injector.get( Person.withId("class mapping") );
 		Assert.notEquals( p1, p2 );
-		var p3 = injector.get( Person.named("singleton mapping") );
-		var p4= injector.get( Person.named("singleton mapping") );
+		var p3 = injector.get( Person.withId("singleton mapping") );
+		var p4= injector.get( Person.withId("singleton mapping") );
 		Assert.equals( p3, p4 );
 	}
 }

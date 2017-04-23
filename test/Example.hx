@@ -12,10 +12,10 @@ class Example {
 		var array2 = [-1,3,366];
 		return Injector.create( "exampleInjector", [
 			Person,
-			Int.named("age").toValue(28),
+			Int.withId("age").toValue(28),
 			(name:String).toValue("Jason"),
 			"Array<Int>".toValue(array),
-			"Array<Int>".named("leastFavouriteNumbers").toValue(array2),
+			"Array<Int>".withId("leastFavouriteNumbers").toValue(array2),
 		]);
 	}
 

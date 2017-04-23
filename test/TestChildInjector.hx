@@ -9,8 +9,8 @@ class TestChildInjector {
 		var ufInjector = getUfrontInjector();
 		var myInjector = getMyInjector(ufInjector);
 
-		Assert.equals( "Anna", myInjector.get(String.named("name")) );
-		Assert.equals( 26, myInjector.get(Int.named("age")) );
+		Assert.equals( "Anna", myInjector.get(String.withId("name")) );
+		Assert.equals( 26, myInjector.get(Int.withId("age")) );
 	}
 
 	function getMyInjector(parent:Injector<"ufront-app-injector">) {
@@ -21,7 +21,7 @@ class TestChildInjector {
 
 	function getUfrontInjector<T>() {
 		return Injector.create( "ufront-app-injector", [
-			Int.named("age").toValue(26),
+			Int.withId("age").toValue(26),
 		]);
 	}
 }

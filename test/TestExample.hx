@@ -21,7 +21,7 @@ class TestExample {
 	function testSecondInjector() {
 		var inj = Injector.create( "test-example-2", [
 			(name:String).toValue("Anna"),
-			Int.named("age").toValue(26),
+			Int.withId("age").toValue(26),
 			"Array<Int>".toValue([]),
 			Person
 		]);

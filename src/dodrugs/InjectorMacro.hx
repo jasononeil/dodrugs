@@ -387,7 +387,7 @@ class InjectorMacro {
 		var complexType;
 
 		switch mapType {
-			case macro $expr.named($nameExpr):
+			case macro $expr.withId($nameExpr):
 				mapType = expr;
 				name = nameExpr.getString().sure();
 			case _:
@@ -484,7 +484,7 @@ class InjectorMacro {
 				var mapping = requiredMapping.getString().sure();
 				var isSupplied = suppliedTypes.indexOf( mapping ) > -1;
 				if ( !isSupplied ) {
-					var mappingName = StringTools.replace( mapping, ' ', ' named ' );
+					var mappingName = StringTools.replace( mapping, ' ', ' with ID ' );
 					Context.warning('Mapping "$mappingName" is required here', requiredMapping.pos);
 					Context.error('Please make sure you provide a mapping for "$mappingName" here', creationPos);
 				}

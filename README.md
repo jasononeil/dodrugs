@@ -37,8 +37,8 @@ var appInjector = Injector.create("myapp", [
 	MyAuthHandler,
 
 	// Injection mappings with a specific name:
-	String.named("sessionName").toValue("my_session_ID"),
-	Int.named("sessionExpiry").toValue(3600),
+	String.withId("sessionName").toValue("my_session_ID"),
+	Int.withId("sessionExpiry").toValue(3600),
 
 	// And an alternative syntax:
 	(sessionName:String).toValue("my_session_ID"),
@@ -46,10 +46,10 @@ var appInjector = Injector.create("myapp", [
 
 	// Type parameters need to either be in quotation marks:
 	"Array<String>".toValue([]),
-	"Array<Int>".named("magicNumbers").toValue([3,7,13]),
+	"Array<Int>".withId("magicNumbers").toValue([3,7,13]),
 
 	// Or in brackets, using the "CheckType" syntax.
-	// (If you use this syntax but don't want a named injection, use an underscore "_")
+	// (If you use this syntax but don't want an ID, use an underscore "_")
 	(_:Array<String>).toValue([]),
 	(magicNumbers:Array<Int>).toValue([3,7,13]),
 ]);
@@ -62,7 +62,7 @@ A quick explanation for each of these:
 - __Mapping a value:__ When anything requests a `Connection`, we'll give it the existing value (`existingMysqlCnx`).
 - __Mapping a class:__ When anything requests a `MailApi`, we'll use the Injector to build a new `MyMailApi`.
 - __Mapping a singleton:__ The first time something requests a `UFMailer`, we'll build a new `SmtpMailer`. All future requests will use that same `SmtpMailer`.
-- __Using a named injection:__ Any time you see `@inject("sessionName") public var name:String` we'll give it the String "my_session_ID".
+- __Using an ID injection:__ Any time you see `@inject("sessionName") public var name:String` we'll give it the String "sessionName".
 - __Using type parameters:__ When you map a type that has a type parameter, you need to either wrap it in quotation marks `"Array<Int>"`, or use the CheckType syntax `(name:Array<Int>)`. This is a limitaton of Haxe syntax parsing.
 
 ### Ask for some things rom the injector:
@@ -70,20 +70,23 @@ A quick explanation for each of these:
 Constructor injection:
 
 ```haxe
-// Inject a `Connection` without a name
+// Inject a `Connection` without an ID
 public function new(cnx:sys.db.Connection) {
 	this.cnx = cnx;
 }
 
-// Inject a `String` named "assetPath"
-@inject("assetPath")
-public function new(path:String) {
+// Inject a `String` with the ID "assetPath"
+public function new(@:useId("assetPath") path:String) {
+	this.path = path;
+}
+
+// Inject a `String` with the ID "path"
+public function new(@:useId path:String) {
 	this.path = path;
 }
 
 // A combination:
-@inject("","assetPath")
-public function new(cnx:Connection, path:String) {
+public function new(cnx:Connection, @:useId path:String) {
 	this.cnx = cnx;
 	this.path = path;
 }
@@ -96,9 +99,9 @@ Manual injection:
 var cnx = appInjector.get(Connection);
 var mailer = appInjector.get(ufront.mail.UFMailer);
 
-// Named Injections:
-var sessionName = appInjector.get(String.named("sessionName"));
-var sessionExpiry = appInjector.get(Int.named("sessionExpiry"));
+// Injections with IDs:
+var sessionName = appInjector.get(String.withId("sessionName"));
+var sessionExpiry = appInjector.get(Int.withId("sessionExpiry"));
 
 // Alternative Syntax:
 var sessionName = appInjector.get((sessionName:String));
@@ -106,7 +109,7 @@ var sessionExpiry = appInjector.get((sessionExpiry:Int));
 
 // Type parameters:
 var myArray = appInjector.get("Array<String>");
-var magicNumbers = appInjector.get("Array<Int>".named("magicNumbers"));
+var magicNumbers = appInjector.get("Array<Int>".withId("magicNumbers"));
 
 // "CheckType" syntax:
 var myArray = appInjector.get((_:Array<String>));
@@ -159,8 +162,7 @@ You will get an error message like this:
 
 	Again, look at the generated `bin/example.js` to see how compact the resulting code can be.
 
-About the project
------------------
+## About the project
 
 ### License
 
