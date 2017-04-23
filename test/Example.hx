@@ -27,22 +27,16 @@ class Example {
 class Person {
 	public var ready = false;
 	public var name:String;
-	@inject("age") public var age:Int;
+	public var age:Int;
 	public var favouriteNumbers:Array<Int>;
-	@inject("leastFavouriteNumbers") public var leastFavouriteNumbers:Null<Array<Int>>;
+	public var leastFavouriteNumbers:Null<Array<Int>>;
 
-	@inject("name")
-	public function new( name:String ) {
+	@inject("name", "age", "", "leastFavouriteNumbers")
+	public function new( name:String, age:Int, arr:Array<Int>, ?arr2:Array<Int>) {
 		this.name = name;
-	}
-
-	@inject
-	public function setFavouriteNumbers( arr:Array<Int> ) {
+		this.age = age;
 		this.favouriteNumbers = arr;
-	}
-
-	@post
-	public function afterInjection() {
+		this.leastFavouriteNumbers = arr2;
 		this.ready = true;
 	}
 }

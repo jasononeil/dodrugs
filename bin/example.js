@@ -15,12 +15,7 @@ Example.setupInjector = function() {
 	var array = [0,1,2];
 	var array2 = [-1,3,366];
 	return new dodrugs_Injector("exampleInjector",null,{ 'Example.Person' : function(inj,id) {
-		var o = new Person(inj._get("String.String name"));
-		o.setFavouriteNumbers(inj._get("Array.Array<StdTypes.Int>"));
-		o.age = inj._get("StdTypes.Int age");
-		o.leastFavouriteNumbers = inj._tryGet("Array.Array<StdTypes.Int> leastFavouriteNumbers",null);
-		o.afterInjection();
-		return o;
+		return new Person(inj._get("String.String name"),inj._get("StdTypes.Int age"),inj._get("Array.Array<StdTypes.Int>"),inj._tryGet("Array.Array<StdTypes.Int> leastFavouriteNumbers",null));
 	}, 'StdTypes.Int age' : function(_,_1) {
 		return 28;
 	}, 'String.String name' : function(_2,_3) {
@@ -34,17 +29,13 @@ Example.setupInjector = function() {
 Example.buildPerson = function(injector) {
 	return injector._get("Example.Person");
 };
-var Person = function(name) {
+var Person = function(name,age,arr,arr2) {
 	this.ready = false;
 	this.name = name;
-};
-Person.prototype = {
-	setFavouriteNumbers: function(arr) {
-		this.favouriteNumbers = arr;
-	}
-	,afterInjection: function() {
-		this.ready = true;
-	}
+	this.age = age;
+	this.favouriteNumbers = arr;
+	this.leastFavouriteNumbers = arr2;
+	this.ready = true;
 };
 var dodrugs_DynamicInjector = function(parent,mappings) {
 	var _gthis = this;
@@ -108,6 +99,6 @@ js__$Boot_HaxeError.wrap = function(val) {
 js__$Boot_HaxeError.__super__ = Error;
 js__$Boot_HaxeError.prototype = $extend(Error.prototype,{
 });
-Person.__meta__ = { fields : { age : { inject : ["age"]}, leastFavouriteNumbers : { inject : ["leastFavouriteNumbers"]}, setFavouriteNumbers : { inject : null}, afterInjection : { post : null}, _ : { inject : ["name"]}}};
+Person.__meta__ = { fields : { _ : { inject : ["name","age","","leastFavouriteNumbers"]}}};
 Example.main();
 })();
