@@ -28,10 +28,22 @@ class InjectorMacro {
 	public static function generateNewInjector( name:String, parent:Expr, mappings:Expr ):Expr {
 		var pos = Context.currentPos();
 		checkInjectorIsNotAlreadyCreated( name, pos );
+
 		// Add metadata to keep track of the parent.
 		var meta = getInjectorMeta();
 		var metaName = META_INJECTOR_PARENT + name;
-		meta.add( metaName, [parent], pos );
+		var parentId = macro null;
+		switch parent.typeof() {
+			case Success(TInst(_.toString() => "dodrugs.Injector", [TInst(_.get() => paramClassType, [])])):
+				switch paramClassType.kind {
+					case KExpr({expr: EConst(CString(name))}):
+						parentId = macro $i{name};
+					default:
+				}
+			default:
+		};
+		meta.add( metaName, [parentId], pos );
+
 		// Run a check at the end of compilation to check all injection mappings are there.
 		Context.onGenerate( checkInjectorSuppliesAllRequirements.bind(name,pos) );
 		// Return `new Injector<"id">( name, parent, mappings )`, which will trigger the Injector @:genericBuild.
@@ -544,7 +556,6 @@ class InjectorMacro {
 					injectorID = null;
 				case { expr: EConst(CIdent(id)), pos: _ }:
 					injectorID = id;
-					trace( "drill down into "+injectorID );
 				case _:
 					throw 'Internal Error: '+parentExpr;
 			}
