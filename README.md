@@ -1,12 +1,13 @@
 DoDrugs (A macro-powered dependency injector for Haxe)
 ======================================================
 
-DoDrugs in a dependency injection (*get it!!*) library for Haxe.
-Unlike doing actual drugs, it uses macros to be safe, checking all of your dependencies at compiletime.
+DoDrugs is a dependency injection (*get it!!*) library for Haxe.
+
+Unlike doing actual drugs, it is safe, because it uses macros to check all of your dependencies at compiletime.
 
 ## Usage
 
-### Getting set up
+### Installation and boilerplate:
 
 Installation:
 
@@ -20,12 +21,12 @@ And this import:
 
 	import dodrugs.Injector;
 
-### Set up your injector and its mappings in one place.
+### Set up your injector and its mappings in one place:
 
 All of your dependencies must be defined in one go:
 
 ```haxe
-var appInjector = Injector.create( "myapp", [
+var appInjector = Injector.create("myapp", [
 	// Map a value, class, singleton or function
 	Connection.toValue(existingMysqlCnx),
 	MailApi.toClass(MyMailApi),
@@ -51,9 +52,9 @@ var appInjector = Injector.create( "myapp", [
 	// (If you use this syntax but don't want a named injection, use an underscore "_")
 	(_:Array<String>).toValue([]),
 	(magicNumbers:Array<Int>).toValue([3,7,13]),
-] );
+]);
 
-$type( appInjector ); // Injector<"myapp">
+$type(appInjector); // Injector<"myapp">
 ```
 
 A quick explanation for each of these:
@@ -64,73 +65,27 @@ A quick explanation for each of these:
 - __Using a named injection:__ Any time you see `@inject("sessionName") public var name:String` we'll give it the String "my_session_ID".
 - __Using type parameters:__ When you map a type that has a type parameter, you need to either wrap it in quotation marks `"Array<Int>"`, or use the CheckType syntax `(name:Array<Int>)`. This is a limitaton of Haxe syntax parsing.
 
-### Set up your injection points:
+### Ask for some things rom the injector:
 
 Constructor injection:
 
 ```haxe
-// Inject a `Connection`
-@inject
-public function new( cnx:sys.db.Connection ) {
-	this.cnx = cnx;
-}
-
-// Inject a `String` named "assetPath"
-@inject("assetPath")
-public function new( path:String ) {
-	this.path = path;
-}
-
-// A combination:
-@inject("","assetPath")
-public function new( cnx:Connection, path:String ) {
-	this.cnx = cnx;
-	this.path = path;
-}
-```
-
-Property injection:
-
-```haxe
-// Inject a `String` named "projectName"
-@inject("projectName") public var projectName:String;
-
-// Inject a `Date` named "projectDeadline"
-@inject("projectDeadline") public var deadline:Date;
-
 // Inject a `Connection` without a name
-@inject public var cnx:Connection;
-```
-
-Injection methods:
-
-```haxe
-// Inject a `Connection`
-@inject
-public function setConnection( cnx:Connection ) {
+public function new(cnx:sys.db.Connection) {
 	this.cnx = cnx;
 }
 
 // Inject a `String` named "assetPath"
 @inject("assetPath")
-public function useAssetPath( path:String ) {
+public function new(path:String) {
 	this.path = path;
 }
 
 // A combination:
 @inject("","assetPath")
-public function injectData( cnx:Connection, path:String ) {
+public function new(cnx:Connection, path:String) {
 	this.cnx = cnx;
 	this.path = path;
-}
-```
-
-Post injection:
-
-```haxe
-@post
-public function injectionHasFinished() {
-	trace( "All done!" );
 }
 ```
 
@@ -138,43 +93,55 @@ Manual injection:
 
 ```haxe
 // Basic:
-var cnx = appInjector.get( Connection );
-var mailer = appInjector.get( ufront.mail.UFMailer );
+var cnx = appInjector.get(Connection);
+var mailer = appInjector.get(ufront.mail.UFMailer);
 
 // Named Injections:
-var sessionName = appInjector.get( String.named("sessionName") );
-var sessionExpiry = appInjector.get( Int.named("sessionExpiry") );
+var sessionName = appInjector.get(String.named("sessionName"));
+var sessionExpiry = appInjector.get(Int.named("sessionExpiry"));
 
 // Alternative Syntax:
-var sessionName = appInjector.get( (sessionName:String) );
-var sessionExpiry = appInjector.get( (sessionExpiry:Int) );
+var sessionName = appInjector.get((sessionName:String));
+var sessionExpiry = appInjector.get((sessionExpiry:Int));
 
 // Type parameters:
-var myArray = appInjector.get( "Array<String>" );
-var magicNumbers = appInjector.get( "Array<Int>".named("magicNumbers") );
+var myArray = appInjector.get("Array<String>");
+var magicNumbers = appInjector.get("Array<Int>".named("magicNumbers"));
 
-// CheckType syntax:
-var myArray = appInjector.get( (_:Array<String>) );
-var magicNumbers = appInjector.get( (magicNumbers:Array<String>) );
+// "CheckType" syntax:
+var myArray = appInjector.get((_:Array<String>));
+var magicNumbers = appInjector.get((magicNumbers:Array<String>));
 ```
 
 ### Feel safe:
 
-TODO: We haven't added it yet, but soon we'll add a whole range of compile time safety checks.
+DoDrugs will not let you compile if a dependency that is required is not supplied.
+You will get an error message like this:
 
-You should never get an "Injector has no rule for type ..." error message again.
+	test/Example.hx:30: lines 30-35 : Warning : Mapping "Array.Array<StdTypes.Int>" is required here
+	test/Example.hx:11: lines 11-15 : Please make sure you provide a mapping for "Array.Array<StdTypes.Int>" here
 
 ## Concepts
 
  1. #### Each injector has a unique name, and we know exactly what mappings it has at compile time, so we can be sure it has all the mappings it needs.
 
-	This is how we know we can add compile time safety.
+	This is how we add compile time safety.
 
 	Anytime you have an `Injector<"app">` it will only be able to use the mappings available when `Injector.create( "app", [] )` was used.
 
- 2. #### The `@inject` and `@post` metadata used to define injection points is designed to be compatible with [minject](https://github.com/massiveinteractive/minject/).
+ 2. #### We only offer constructor injection and manual injection.
 
-    This means a class could be instantiated by both an minject.Injector and a dodrugs.Injector.
+ 	Unlike [minject](https://github.com/massiveinteractive/minject/), another popular dependency injection library for Haxe, we do not support `@inject` injection points on variables or methods, and we do not have `@post` injection hooks.  You can only inject into the constructor, and everything will be available immediately.
+
+	If you really would prefer property injection points, you can use [tink_lang](https://haxetink.github.io/tink_lang/#/declaration-sugar/property-declaration?id=direct-initialization) to automatically make variables things that are set in the constructor:
+
+	```haxe
+	@:tink class Person {
+		var name:String = ("Stranger"); // Will become a constructor argument, default value is "Stranger".
+		var age:Int = _;                // Will become a constructor argument, with no default value.
+		function new() {}
+	}
+	```
 
  3. #### Avoid reflection.
 
@@ -182,9 +149,10 @@ You should never get an "Injector has no rule for type ..." error message again.
 
 	Our aim is to avoid using `Reflect.callMethod`, `Reflect.setProperty`, `Reflect.fields`, `Type.getInstanceFields` or similar methods. We do this by using macros to generate code for instantiating new objects, rather than figuring it out at runtime using reflection.
 
-	Take a look at `bin/example.js` - it is very obvious when looking at the output code how each object is being constructed, and that example has less than 100 lines of generated JS.
+	Take a look at `bin/example.js` - it is very obvious when looking at the output code how each object is being constructed.
+	That example only has about 100 lines of generated JS - quite tiny considering a full dependency injector is in use.
 
- 4. #### Minimal runtime dependencies.
+ 4. #### No runtime dependencies.
 
 	We have a compile time dependency on `tink_core` and `tink_macro`.
 	These are not included in the generated code.
