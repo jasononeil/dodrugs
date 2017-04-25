@@ -393,12 +393,12 @@ class InjectorMacro {
 				// This is essentially the same as `var _:path.To.Type = path.To.Type`
 				details.ct = typePathStr.asComplexType();
 				var assignment = typePathStr.resolve();
-				// Check if it has @:toSingletonClass metadata, otherwise assume @:toClass.
+				// Check if it has @:toClass metadata, otherwise assume @:toSingletonClass.
 				details.assignment = switch mapType {
-					case macro @:toSingletonClass $typePath:
-						macro @:toSingletonClass $assignment;
-					default:
+					case macro @:toClass $typePath:
 						macro @:toClass $assignment;
+					default:
+						macro @:toSingletonClass $assignment;
 				}
 			default:
 				return mapType.reject( 'Incorrect syntax for mapping type: ${mapType.toString()} should be in the format `var injectionId:InjectionType`' );
