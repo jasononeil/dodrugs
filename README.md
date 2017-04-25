@@ -27,98 +27,128 @@ All of your dependencies must be defined in one go:
 
 ```haxe
 var appInjector = Injector.create("myapp", [
-	// Map a value, class, singleton or function
-	Connection.toValue(existingMysqlCnx),
-	MailApi.toClass(MyMailApi),
-	UFMailer.toSingleton(SmtpMailer),
+	// Map a plain value.
+	// When the Injector is asked for a String named "apiKey", we
+	// will return the String "my secret". Same for the other values.
+	var apiKey:String = "my secret",
+	var sessionExpiry:Int = 3600,
+	var mysqlCnx:Connection = existingMysqlCnx,
 
-	// Shortcut for mapping a class to itself:
+	// Map a class.
+	// When the injector is asked for a `MailApi` class named `mailApi`,
+	// we will build a new instance of the `MyMailApi` class using the
+	// Injector and return the new instance.
+	var mailApi:MailApi = @:toClass MyMailApi,
+
+	// Map a singleton.
+	// If it's a singleton, we will use the same instance each time
+	// it is requested, rather than build multiple instances of the class.
+	// The first time an `IMailer` named "mailer" is requested, we will
+	// build a new SmtpMailer instance. We'll use that same instance for
+	// all future requests too.
+	var mailer:IMailer = @:toSingletonClass SmtpMailer,
+
+	// Map a function.
+	// Provide a function that returns executes and returns a value each time.
+	// In this example, when a `ReactComponent` named `page` is requested,
+	// we will run the JSX snippet and return the value.
+	var page:ReactComponent = @:toFunction function (inj, id) {
+		return jsx('<Page></Page>');
+	}
+
+	// Map a singleton function.
+	// Provide a function that executes and returns a value the first time,
+	// and keeps that value for future requests. In this example, when a
+	// `Connection` named "cnx" is requested the first time, we create the
+	// connection, then we will re-use that connection for all future requests.
+	var cnx:Connection = @:toSingletonFunction function (inj, id) {
+		return Mysql.connect({/**/});
+	}
+
+	// Use a wildcard mapping.
+	// If you want your mapping to match any request for a `Connection`,
+	// regardless of it's name, use `var _:Connection` to create
+	// a wildcard mapping.
+	var _:Connection = existingMysqlCnx,
+	var _:MailApi = @:toClass MyMailApi,
+
+	// Simple singleton mappings.
+	// The most common type of mapping for APIs and Services is probably
+	// `@:toSingletonClass`. If a mapping is simply `MyMailApi` we will
+	// treat it the same as `var _:MyMailApi = @:toSingletonClass MyMailApi`.
 	MyMailApi,
-	MyAuthHandler,
+	SmtpMailer,
 
-	// Injection mappings with a specific name:
-	String.withId("sessionName").toValue("my_session_ID"),
-	Int.withId("sessionExpiry").toValue(3600),
-
-	// And an alternative syntax:
-	(sessionName:String).toValue("my_session_ID"),
-	(sessionExpiry:Int).toValue(3600),
-
-	// Type parameters need to either be in quotation marks:
-	"Array<String>".toValue([]),
-	"Array<Int>".withId("magicNumbers").toValue([3,7,13]),
-
-	// Or in brackets, using the "CheckType" syntax.
-	// (If you use this syntax but don't want an ID, use an underscore "_")
-	(_:Array<String>).toValue([]),
-	(magicNumbers:Array<Int>).toValue([3,7,13]),
+	// Simple class mappings.
+	// If you would like to map a class to itself, but not as a singleton,
+	// you can provide the class name and `@:toClass` metadata.
+	// `@:toClass MyMailApi` is treated the same as
+	// `var _:MyMailApi = @:toClass MyMailApi`
+	@:toClass MyMailApi,
+	@:toClass SmtpMailer
 ]);
 
 $type(appInjector); // Injector<"myapp">
 ```
-
-A quick explanation for each of these:
-
-- __Mapping a value:__ When anything requests a `Connection`, we'll give it the existing value (`existingMysqlCnx`).
-- __Mapping a class:__ When anything requests a `MailApi`, we'll use the Injector to build a new `MyMailApi`.
-- __Mapping a singleton:__ The first time something requests a `UFMailer`, we'll build a new `SmtpMailer`. All future requests will use that same `SmtpMailer`.
-- __Using an ID injection:__ Any time you see `@inject("sessionName") public var name:String` we'll give it the String "sessionName".
-- __Using type parameters:__ When you map a type that has a type parameter, you need to either wrap it in quotation marks `"Array<Int>"`, or use the CheckType syntax `(name:Array<Int>)`. This is a limitaton of Haxe syntax parsing.
 
 ### Ask for some things rom the injector:
 
 Constructor injection:
 
 ```haxe
-// Inject a `Connection` without an ID
-public function new(cnx:sys.db.Connection) {
-	this.cnx = cnx;
+
+class InjectAConnection {
+	// Inject a Connection called "cnx", or fallback to any Connection.
+	public function new(cnx:sys.db.Connection) {
+		this.cnx = cnx;
+	}
 }
 
-// Inject a `String` with the ID "assetPath"
-public function new(@:useId("assetPath") path:String) {
-	this.path = path;
+class InjectAString {
+	// Inject a String called "assetPath", or fallback to any String.
+	public function new(assetPath:String) {
+		this.path = assetPath;
+	}
 }
 
-// Inject a `String` with the ID "path"
-public function new(@:useId path:String) {
-	this.path = path;
-}
-
-// A combination:
-public function new(cnx:Connection, @:useId path:String) {
-	this.cnx = cnx;
-	this.path = path;
+class InjectBothAConnectionAndAString {
+	// You can inject as many things as you want in the constructor.
+	public function new(cnx:Connection, assetPath:String) {
+		this.cnx = cnx;
+		this.path = assetPath;
+	}
 }
 ```
 
 Manual injection:
 
 ```haxe
-// Basic:
+// Request a class, no matter what name:
 var cnx = appInjector.get(Connection);
 var mailer = appInjector.get(ufront.mail.UFMailer);
 
-// Injections with IDs:
-var sessionName = appInjector.get(String.withId("sessionName"));
-var sessionExpiry = appInjector.get(Int.withId("sessionExpiry"));
+// or:
+var cnx = appInjector.get(var _:Connection);
+var mailer = appInjector.get(var _:ufront.mail.UFMailer);
 
-// Alternative Syntax:
-var sessionName = appInjector.get((sessionName:String));
-var sessionExpiry = appInjector.get((sessionExpiry:Int));
+// Request a value with a specific name:
+var sessionName = appInjector.get(var sessionName:String));
+var sessionExpiry = appInjector.get(var sessionExpiry:Int);
 
 // Type parameters:
-var myArray = appInjector.get("Array<String>");
-var magicNumbers = appInjector.get("Array<Int>".withId("magicNumbers"));
+var myArray = appInjector.get(var _:Array<String>);
+var magicNumbers = appInjector.get(var _:magicNumbers:Array<Int>);
 
-// "CheckType" syntax:
-var myArray = appInjector.get((_:Array<String>));
-var magicNumbers = appInjector.get((magicNumbers:Array<String>));
+// Please note the following will not work, because
+// it is not valid Haxe syntax:
+//     var myArray = appInjector.get(Array<String>);
+// If you need type parameters, you need to use the "var" syntax.
 ```
 
 ### Feel safe:
 
 DoDrugs will not let you compile if a dependency that is required is not supplied.
+
 You will get an error message like this:
 
 	test/Example.hx:30: lines 30-35 : Warning : Mapping "Array.Array<StdTypes.Int>" is required here
@@ -130,7 +160,9 @@ You will get an error message like this:
 
 	This is how we add compile time safety.
 
-	Anytime you have an `Injector<"app">` it will only be able to use the mappings available when `Injector.create( "app", [] )` was used.
+	Anytime you have an `Injector<"app">` it will only be able to use the mappings available when `Injector.create("app", [])` was used.
+
+	The idea of having a String as a type parameter is pretty odd, but it was the most light-weight way I could find to track injections accurately.
 
  2. #### We only offer constructor injection and manual injection.
 
@@ -167,6 +199,16 @@ You will get an error message like this:
 ### License
 
 All code is released under the MIT license.
+
+### Support
+
+If you find a bug or need help, feel free to post a Github issue.
+
+### Contributions
+
+Bug fixes and new features are welcome, providing they keep in line with the concepts given above, and the code stays small and focused.
+
+If you submit a pull request, and you've made sure to update the tests and check they are passing, I will be your friend :)
 
 ### Naming
 

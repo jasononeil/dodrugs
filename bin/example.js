@@ -23,7 +23,9 @@ Example.setupInjector = function() {
 	}, 'Array.Array<StdTypes.Int> leastFavouriteNumbers' : function(_6,_7) {
 		return array2;
 	}, 'Example.Person' : function(inj,id) {
-		return new Person(inj._get("String.String name"),inj._get("StdTypes.Int age"),inj._get("Array.Array<StdTypes.Int> anArray"),inj._tryGet("Array.Array<StdTypes.Int> leastFavouriteNumbers",null));
+		return inj._getSingleton(function(inj1,id1) {
+			return new Person(inj1._get("String.String name"),inj1._get("StdTypes.Int age"),inj1._get("Array.Array<StdTypes.Int> anArray"),inj1._tryGet("Array.Array<StdTypes.Int> leastFavouriteNumbers",null));
+		},id);
 	}});
 };
 var Person = function(name,age,anArray,leastFavouriteNumbers) {
@@ -64,6 +66,13 @@ dodrugs_UntypedInjector.prototype = {
 		} catch( e ) {
 			return fallback;
 		}
+	}
+	,_getSingleton: function(mapping,id) {
+		var val = mapping(this,id);
+		this.mappings[id] = function(_,_1) {
+			return val;
+		};
+		return val;
 	}
 };
 var dodrugs_Injector = function(name,parent,mappings) {
