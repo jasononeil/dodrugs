@@ -247,7 +247,7 @@ class InjectorMacro {
 			markInjectionStringAsRequired( injectorId, injectionString, pos );
 		}
 		return
-			if ( defaultValue!=null ) macro inj.trygetFromId( $v{injectionString}, $defaultValue )
+			if ( defaultValue!=null ) macro inj.tryGetFromId( $v{injectionString}, $defaultValue )
 			else macro inj.getFromId( $v{injectionString} );
 	}
 

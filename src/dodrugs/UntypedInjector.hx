@@ -44,7 +44,7 @@ class UntypedInjector {
 	@param id The string identifier representing the mapping you wish to retrieve.
 	@return The value supplied by the injector mapping, or if no mapping was found, the fallback value. The return value will have the same type as the fallback value.
 	**/
-	public inline function trygetFromId<T>( id:String, fallback:T ):T {
+	public inline function tryGetFromId<T>( id:String, fallback:T ):T {
 		return _tryGet( id, fallback );
 	}
 

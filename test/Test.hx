@@ -4,6 +4,7 @@ import utest.Runner;
 class Test {
 	static function main() {
 		var runner = new Runner();
+		runner.addCase( new TestUntypedInjector() );
 		runner.addCase( new TestMacroUtils() );
 		runner.addCase( new TestClassInstantiation() );
 		runner.addCase( new TestSingletons() );
