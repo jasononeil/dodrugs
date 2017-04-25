@@ -70,4 +70,18 @@ class TestUntypedInjector {
 		Assert.equals(obj1, obj2);
 		Assert.equals("3.14159", obj1.num);
 	}
+
+	function testGet() {
+		// These are mostly tested in parts by other things, so we'll just test the two basic syntaxes.
+		Assert.equals('wildcard fallback', parentInj.get(String));
+		Assert.equals('wildcard fallback', parentInj.get(var _:String));
+		Assert.equals('wildcard fallback', parentInj.get(var withName:String));
+		Assert.equals('wildcard fallback', childInj.get(String));
+		Assert.equals('wildcard fallback', childInj.get(var _:String));
+		Assert.equals('named injection', childInj.get(var withName:String));
+		Assert.equals(childInj, childInj.get(UntypedInjector));
+		Assert.equals(parentInj, parentInj.get(dodrugs.UntypedInjector));
+		Assert.equals(childInj, childInj.get(var someName:UntypedInjector));
+		Assert.equals(parentInj, parentInj.get(var someName:dodrugs.UntypedInjector));
+	}
 }
