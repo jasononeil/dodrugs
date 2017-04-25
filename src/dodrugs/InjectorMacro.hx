@@ -50,7 +50,7 @@ class InjectorMacro {
 		var mappingsExpr = generateMappings( name, mappings );
 		var param = TPExpr( macro $v{name} );
 		var typePath = "dodrugs.Injector".asTypePath([ param ]);
-		return macro @:pos(pos) @:privateAccess new $typePath( $v{name}, $parent, $mappingsExpr );
+		return macro @:pos(pos) @:privateAccess new $typePath(@:noPrivateAccess $v{name}, @:noPrivateAccess $parent, @:noPrivateAccess $mappingsExpr );
 	}
 
 	/**
@@ -93,7 +93,7 @@ class InjectorMacro {
 			case macro @:toSingletonClass $classExpr:
 				var fnExpr = buildClassInstantiationFn(injectorId, classExpr);
 				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.UntypedInjector,id:String):Any {
-					return @:privateAccess inj._getSingleton($fnExpr, id);
+					return @:privateAccess inj._getSingleton(@:noPrivateAccess $fnExpr, @:noPrivateAccess id);
 				}
 			case macro @:toFunction $fn:
 				result.expr = fn;
@@ -104,7 +104,7 @@ class InjectorMacro {
 					return $fn(inj, id);
 				}
 				result.expr = macro @:pos(fn.pos) function(inj:dodrugs.UntypedInjector,id:String):Any {
-					return @:privateAccess inj._getSingleton($fnWithAnyReturn, id);
+					return @:privateAccess inj._getSingleton(@:noPrivateAccess $fnWithAnyReturn, @:noPrivateAccess id);
 				}
 			case macro $value:
 				result.expr = macro @:pos(value.pos) function(_:dodrugs.UntypedInjector, _:String):Any {

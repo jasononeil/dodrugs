@@ -68,6 +68,7 @@ class TestMacroUtils {
 		// Just test these don't throw errors.
 		// We'll check the class instantiation functions in `ClassInstantiation.hx`
 		var result = Injector.getInjectionMapping(var _:Test = @:toClass Test);
-		var result = Injector.getInjectionMapping(var _:haxe.remoting.Connection = @:toSingletonClass haxe.remoting.HttpConnection);
+		var result = Injector.getInjectionMapping(var _:InjectionTestClasses.ApiTest = @:toSingletonClass InjectionTestClasses.MyApiTest);
 	}
 }
+

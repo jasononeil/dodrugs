@@ -42,3 +42,12 @@ class InjectionTest_InjectTheInjector {
 		this.injector = injector;
 	}
 }
+
+interface ApiTest {
+	public function doTheThing():Void;
+}
+
+class MyApiTest implements ApiTest {
+	public function new() {}
+	public function doTheThing() {}
+}
