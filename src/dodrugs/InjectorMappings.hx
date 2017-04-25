@@ -10,4 +10,4 @@ They behave like a `Map<String,InjectorMapping>`, with `get()`, `set()`, `[]` ar
 
 See `DynamicAccess` and `InjectorMapping`.
 **/
-typedef InjectorMappings = DynamicAccess<InjectorMapping<Dynamic>>;
+typedef InjectorMappings = DynamicAccess<InjectorMapping<Any>>;
