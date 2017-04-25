@@ -25,14 +25,14 @@ class DynamicInjector {
 	@return The value supplied by the injector mapping. It is typed as `Any`, which can then be cast into the relevant type.
 	@throws (String) An error message if no mapping was found for this ID.
 	**/
-	public inline function getFromID( id:String ):Any {
+	public inline function getFromId( id:String ):Any {
 		return _get( id );
 	}
 
 	function _get( id:String ):Any {
 		return
 			if ( mappings.exists(id) ) mappings[id]( this, id )
-			else if ( this.parent!=null ) this.parent.getFromID( id )
+			else if ( this.parent!=null ) this.parent.getFromId( id )
 			else throw 'The injection had no mapping for "$id"';
 	}
 
@@ -42,13 +42,13 @@ class DynamicInjector {
 	@param id The string identifier representing the mapping you wish to retrieve.
 	@return The value supplied by the injector mapping, or if no mapping was found, the fallback value. The return value will have the same type as the fallback value.
 	**/
-	public inline function tryGetFromID<T>( id:String, fallback:T ):T {
+	public inline function trygetFromId<T>( id:String, fallback:T ):T {
 		return _tryGet( id, fallback );
 	}
 
 	function _tryGet( id:String, fallback:Any ):Any {
 		return
-			try getFromID( id )
+			try getFromId( id )
 			catch (e:Dynamic) fallback;
 	}
 
@@ -65,7 +65,7 @@ class DynamicInjector {
 
 	This essentially is a shortcut for:
 
-	`injector.getFromID( Injector.getInjectionString(MyClass) );`
+	`injector.getFromId( Injector.getInjectionString(MyClass) );`
 
 	@param typeExpr The object to request. See `InjectorStatics.getInjectionString()` for a description of valid formats.
 	@return The requested object, with all injections applied. The return object will be correctly typed as the type you are requesting.
@@ -76,11 +76,11 @@ class DynamicInjector {
 		var complexType = InjectorMacro.getComplexTypeFromIdExpr( typeExpr );
 		// Get the Injector ID based on the current type of "this", and mark the current injection string as "required".
 		switch haxe.macro.Context.typeof(ethis) {
-			case TInst( _, [TInst(_.get() => { kind: KExpr({ expr: EConst(CString(injectorID)) }) },[])] ):
-				InjectorMacro.markInjectionStringAsRequired( injectorID, injectionString, typeExpr.pos );
+			case TInst( _, [TInst(_.get() => { kind: KExpr({ expr: EConst(CString(injectorId)) }) },[])] ):
+				InjectorMacro.markInjectionStringAsRequired( injectorId, injectionString, typeExpr.pos );
 			case _:
 		}
 
-		return macro ($ethis.getFromID($v{injectionString}):$complexType);
+		return macro ($ethis.getFromId($v{injectionString}):$complexType);
 	}
 }

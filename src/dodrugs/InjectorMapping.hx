@@ -20,7 +20,7 @@ If you wish to set up a more complex object, you can have a more complex functio
 function injectorMapping(inj,mappingString) {
 	var session = {};
 	session.name = "UserSession";
-	session.expiry = inj.getFromID("StdTypes.Int sessionExpiry");
+	session.expiry = inj.getFromId("StdTypes.Int sessionExpiry");
 	return session;
 }
 ```

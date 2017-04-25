@@ -77,11 +77,11 @@ class InjectorMacro {
 	/**
 	Process a mapping expression, and return the field and the mapping function.
 
-	@param injectorID The Injector this mapping expression belongs to. This is required for compile-time checking that all required dependencies are supplied. If you do not require these checks, set the injectorID to null.
+	@param injectorId The Injector this mapping expression belongs to. This is required for compile-time checking that all required dependencies are supplied. If you do not require these checks, set the injectorId to null.
 	@param mappingExpr The complete expression representing the mapping.
 	@return An object with the `field` (the injection ID) and the `expr` (the mapping function). Ready to use in an EObjectDecl.
 	**/
-	public static function processMappingExpr(injectorID:Null<String>, mappingExpr:Expr):{ field:String, expr:Expr } {
+	public static function processMappingExpr(injectorId:Null<String>, mappingExpr:Expr):{ field:String, expr:Expr } {
 		var details = getMappingDetailsFromExpr(mappingExpr);
 		var result = {
 			field: details.mappingId,
@@ -89,9 +89,9 @@ class InjectorMacro {
 		};
 		switch details.assignment {
 			case macro @:toClass $classExpr:
-				result.expr = buildClassInstantiationFn(injectorID, classExpr);
+				result.expr = buildClassInstantiationFn(injectorId, classExpr);
 			case macro @:toSingletonClass $classExpr:
-				var fnExpr = buildClassInstantiationFn(injectorID, classExpr);
+				var fnExpr = buildClassInstantiationFn(injectorId, classExpr);
 				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.DynamicInjector,id:String):Any {
 					return @:privateAccess inj._getSingleton($fnExpr, id);
 				}
@@ -111,8 +111,8 @@ class InjectorMacro {
 					return ($value:Any);
 				}
 		}
-		if (injectorID!=null) {
-			markInjectionStringAsSupplied(injectorID, result.field, mappingExpr.pos);
+		if (injectorId!=null) {
+			markInjectionStringAsSupplied(injectorId, result.field, mappingExpr.pos);
 		}
 		return result;
 	}
@@ -124,12 +124,12 @@ class InjectorMacro {
 
 	This will be used to check all required mappings are supplied during `Context.onGenerate()`, and produce helpful error messages otherwise.
 
-	@param injectorID The String that identifies which injector this mapping is supplied/required on.
+	@param injectorId The String that identifies which injector this mapping is supplied/required on.
 	@param injectionStrin The String that describes the mapping, including type and name. See `getInjectionStringFromExpr()`.
 	@param pos The position where the mapping is required. This will be used to generate error messages in the correct place.
 	**/
-	public static function markInjectionStringAsRequired( injectorID:Null<String>, injectionString:String, pos:Position ) {
-		var metaName = META_MAPPINGS_REQUIRED + injectorID;
+	public static function markInjectionStringAsRequired( injectorId:Null<String>, injectionString:String, pos:Position ) {
+		var metaName = META_MAPPINGS_REQUIRED + injectorId;
 		markInjectionStringMetadata( metaName, injectionString, pos );
 	}
 
@@ -138,16 +138,16 @@ class InjectorMacro {
 
 	This will be used to check all required mappings are supplied during `Context.onGenerate()`, and produce helpful error messages otherwise.
 
-	@param injectorID The String that identifies which injector this mapping is supplied/required on.
+	@param injectorId The String that identifies which injector this mapping is supplied/required on.
 	@param injectionStrin The String that describes the mapping, including type and name. See `getInjectionStringFromExpr()`.
 	@param pos The position where the injector is created. This will be used to generate error messages in the correct place.
 	**/
-	public static function markInjectionStringAsSupplied( injectorID:Null<String>, injectionString:String, pos:Position ) {
-		var metaName = META_MAPPINGS_SUPPLIED + injectorID;
+	public static function markInjectionStringAsSupplied( injectorId:Null<String>, injectionString:String, pos:Position ) {
+		var metaName = META_MAPPINGS_SUPPLIED + injectorId;
 		markInjectionStringMetadata( metaName, injectionString, pos );
 	}
 
-	static function buildClassInstantiationFn( injectorID:Null<String>, classExpr:Expr ):Expr {
+	static function buildClassInstantiationFn( injectorId:Null<String>, classExpr:Expr ):Expr {
 		var p = classExpr.pos;
 		// Get the TypePath, ComplexType and Type based on the classExpr.
 		var className = exprIsTypePath( classExpr ).sure();
@@ -163,15 +163,15 @@ class InjectorMacro {
 			case TPath(tp): tp;
 			case _: throw 'assert';
 		}
-		var constructorLines = getConstructorExpressions( injectorID, targetClassType, targetTypePath, p );
+		var constructorLines = getConstructorExpressions( injectorId, targetClassType, targetTypePath, p );
 		return macro @:pos(p) function(inj:dodrugs.DynamicInjector,id:String):Any $b{constructorLines};
 	}
 
-	static function getConstructorExpressions( injectorID:Null<String>, type:ClassType, typePath:TypePath, pos:Position ):Array<Expr> {
+	static function getConstructorExpressions( injectorId:Null<String>, type:ClassType, typePath:TypePath, pos:Position ):Array<Expr> {
 		var constructor = getConstructorForType( type, pos ).sure();
 		var constructorLines = [];
 		var constructorArguments = [];
-		var fnArgumentLines = getArgumentsForMethodInjection( injectorID, constructor, pos );
+		var fnArgumentLines = getArgumentsForMethodInjection( injectorId, constructor, pos );
 		for ( argPair in fnArgumentLines ) {
 			constructorArguments.push( argPair.a );
 			constructorLines.push( argPair.b );
@@ -192,7 +192,7 @@ class InjectorMacro {
 		return Failure( new Error('The type ${classType.name} has no constructor',pos) );
 	}
 
-	static function getArgumentsForMethodInjection( injectorID:Null<String>, method:ClassField, injectionPos:Position ):Array<Pair<Expr,Expr>> {
+	static function getArgumentsForMethodInjection( injectorId:Null<String>, method:ClassField, injectionPos:Position ):Array<Pair<Expr,Expr>> {
 		var metaNames = getInjectionNamesFromMetadata( method );
 		switch [method.kind, method.expr().expr] {
 			case [FMethod(_), TFunction({ args:methodArgs, expr:_, t:_ })]:
@@ -204,7 +204,7 @@ class InjectorMacro {
 					for ( i in 0...methodArgs.length ) {
 						var varName = methodArgs[i].v.name;
 						var injectionName = (metaNames[i]!="") ? metaNames[i] : null;
-						var getValueExpr = getExprForFunctionArg( injectorID, methodArgs[i], injectionName, method.pos );
+						var getValueExpr = getExprForFunctionArg( injectorId, methodArgs[i], injectionName, method.pos );
 						var identExpr = macro $i{varName};
 						var setValueExpr = macro var $varName = $getValueExpr;
 						argumentExprs.push( new Pair(identExpr,setValueExpr) );
@@ -232,7 +232,7 @@ class InjectorMacro {
 		return metaNames;
 	}
 
-	static function getExprForFunctionArg( injectorID:Null<String>, methodArg:{v:TVar, value:Null<TConstant>}, injectionName:Null<String>, pos:Position ):Expr {
+	static function getExprForFunctionArg( injectorId:Null<String>, methodArg:{v:TVar, value:Null<TConstant>}, injectionName:Null<String>, pos:Position ):Expr {
 		var param = methodArg.v;
 		var defaultValue:Expr = null;
 		if ( methodArg.value!=null ) {
@@ -250,7 +250,7 @@ class InjectorMacro {
 		var pair = checkIfTypeIsOptional( param.t, defaultValue );
 		var paramType = pair.a;
 		defaultValue = pair.b;
-		return generateExprToGetValueFromInjector( injectorID, paramType, injectionName, defaultValue, pos );
+		return generateExprToGetValueFromInjector( injectorId, paramType, injectionName, defaultValue, pos );
 	}
 
 	static function checkIfTypeIsOptional( t:Type, defaultValue:Null<Expr> ) {
@@ -262,14 +262,14 @@ class InjectorMacro {
 		}
 	}
 
-	static function generateExprToGetValueFromInjector( injectorID:Null<String>, type:Type, injectionName:Null<String>, defaultValue:Null<Expr>, pos:Position ):Expr {
+	static function generateExprToGetValueFromInjector( injectorId:Null<String>, type:Type, injectionName:Null<String>, defaultValue:Null<Expr>, pos:Position ):Expr {
 		var injectionString = formatMappingId( type.toComplex(), injectionName );
-		if ( defaultValue==null && injectorID!=null ) {
-			markInjectionStringAsRequired( injectorID, injectionString, pos );
+		if ( defaultValue==null && injectorId!=null ) {
+			markInjectionStringAsRequired( injectorId, injectionString, pos );
 		}
 		return
-			if ( defaultValue!=null ) macro inj.tryGetFromID( $v{injectionString}, $defaultValue )
-			else macro inj.getFromID( $v{injectionString} );
+			if ( defaultValue!=null ) macro inj.trygetFromId( $v{injectionString}, $defaultValue )
+			else macro inj.getFromId( $v{injectionString} );
 	}
 
 	static function markInjectionStringMetadata( metaName:String, injectionString:String, pos:Position ) {
@@ -349,12 +349,12 @@ class InjectorMacro {
 		return null;
 	}
 
-	static function generateMappings( injectorID:Null<String>, mappings:Expr ):Expr {
+	static function generateMappings( injectorId:Null<String>, mappings:Expr ):Expr {
 		var mappingRules = [];
 		switch mappings {
 			case macro [$a{mappingExprs}]:
 				for ( mappingExpr in mappingExprs ) {
-					var rule = processMappingExpr( injectorID, mappingExpr );
+					var rule = processMappingExpr( injectorId, mappingExpr );
 					mappingRules.push( rule );
 				}
 			case _:
@@ -407,7 +407,7 @@ class InjectorMacro {
 				details.id = varName;
 				details.assignment = assignment;
 			default:
-				return mapType.reject( 'Incorrect syntax for mapping type: ${mapType.toString()} should be in the format `var injectionID:Type`' );
+				return mapType.reject( 'Incorrect syntax for mapping type: ${mapType.toString()} should be in the format `var injectionId:InjectionType`' );
 		}
 		details.ct = makeTypePathAbsolute(details.ct, mapType.pos);
 		details.mappingId = formatMappingId(details.ct, details.id);
@@ -440,15 +440,15 @@ class InjectorMacro {
 		return ct.toType( pos ).sure().toComplex();
 	}
 
-	static function checkInjectorSuppliesAllRequirements( injectorID:String, creationPos:Position, types:Array<Type> ) {
-		var requiredMetaName = META_MAPPINGS_REQUIRED + injectorID;
+	static function checkInjectorSuppliesAllRequirements( injectorId:String, creationPos:Position, types:Array<Type> ) {
+		var requiredMetaName = META_MAPPINGS_REQUIRED + injectorId;
 		var meta = getInjectorMeta();
 
 		// Collect all the supplied injections for this injector and it's parent.
 		var suppliedTypes = [];
-		while ( injectorID!=null ) {
-			var parentMetaName = META_INJECTOR_PARENT + injectorID;
-			var suppliedMetaName = META_MAPPINGS_SUPPLIED + injectorID;
+		while ( injectorId!=null ) {
+			var parentMetaName = META_INJECTOR_PARENT + injectorId;
+			var suppliedMetaName = META_MAPPINGS_SUPPLIED + injectorId;
 			var suppliedTypesMeta = meta.extract( suppliedMetaName )[0];
 			if ( suppliedTypesMeta!=null ) {
 				for ( expr in suppliedTypesMeta.params )
@@ -457,14 +457,14 @@ class InjectorMacro {
 			// See if there is a parent injector.
 			if ( meta.extract( parentMetaName )[0]==null )
 				// There is no metadata, meaning Injector.create() or Injector.extend() was never called.
-				Context.error( 'Parent Injector $injectorID does not exist', creationPos );
+				Context.error( 'Parent Injector $injectorId does not exist', creationPos );
 			var parentExpr = meta.extract( parentMetaName )[0].params[0];
 			switch parentExpr {
 				case macro null:
 					// Injector.create() was called, rather than extend(), so there is no parent.
-					injectorID = null;
+					injectorId = null;
 				case { expr: EConst(CIdent(id)), pos: _ }:
-					injectorID = id;
+					injectorId = id;
 				case _:
 					throw 'Internal Error: '+parentExpr;
 			}

@@ -33,7 +33,7 @@ For example, "String.String", "StdTypes.Int", "Array.Array<StdTypes.Int>" or "sy
 
 ### Generating Injection Strings
 
-These strings can be used directly, for example, in `DynamicInjector.getFromID()`.
+These strings can be used directly, for example, in `DynamicInjector.getFromId()`.
 But usually, you will want to use special macro-powered syntax.
 
 Valid formats include:
@@ -97,11 +97,11 @@ var requestInjector = Injector.extend( "current_request", appInjector, [
 	HttpResponse.toValue( context.httpResponse ),
 	UFHttpSession.toValue( context.currentSession ),
 	UFAuthUser.toValue( context.currentUser ),
-	String.withId("userID").toValue( context.currentUserID )
+	String.withId("userId").toValue( context.currentUserId )
 ] );
 $type(appInjector); // Injector<"current_request">
-requestInjector.get( String.withId("userID") );
-requestInjector.get( (userID:String) );
+requestInjector.get( String.withId("userId") );
+requestInjector.get( (userId:String) );
 requestInjector.get( Person ); // from the parent injector.
 ```
 

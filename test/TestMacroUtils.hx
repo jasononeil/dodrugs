@@ -7,7 +7,7 @@ import haxe.ds.StringMap;
 class TestMacroUtils {
 	public function new() {}
 
-	function testInjectionIDs() {
+	function testInjectionIds() {
 		// Test `var id:Type = val` syntax.
 		Assert.equals("String.String", Injector.getInjectionString(var _:String));
 		Assert.equals("StdTypes.Int", Injector.getInjectionString(var _:Int));
@@ -61,8 +61,8 @@ class TestMacroUtils {
 			"some_id": mapping.mappingFn
 		});
 		Assert.equals("Array.Array<StdTypes.Int> test", mapping.id);
-		var firstGet = inj.getFromID("some_id");
-		var secondGet = inj.getFromID("some_id");
+		var firstGet = inj.getFromId("some_id");
+		var secondGet = inj.getFromId("some_id");
 		Assert.equals(firstGet, secondGet);
 
 		// Just test these don't throw errors.
