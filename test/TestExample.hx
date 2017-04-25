@@ -8,7 +8,7 @@ class TestExample {
 
 	function testExampleRuns() {
 		var injector = Example.setupInjector();
-		var person = Example.buildPerson( injector );
+		var person = Example.buildPerson(injector);
 
 		Assert.equals("Jason", injector.get(var name:String));
 		Assert.equals(28, injector.get(var age:Int));
@@ -16,6 +16,9 @@ class TestExample {
 		Assert.equals(28, person.age);
 		Assert.same([0,1,2], person.favouriteNumbers);
 		Assert.same([-1,3,366], person.leastFavouriteNumbers);
+
+		var person2 = Example.buildPerson(injector);
+		Assert.notEquals(person, person2);
 	}
 
 	function testSecondInjector() {
@@ -24,7 +27,7 @@ class TestExample {
 			var name:String = "Anna",
 			var age:Int = 26,
 			var _:Array<Int> = arr,
-			var _:Person = @:toClass Person
+			@:toSingletonClass Person
 		]);
 		var person = inj.get(var _:Person);
 
@@ -35,5 +38,9 @@ class TestExample {
 		// So both favouriteNumbers and leastFavouriteNumbers will end up with the same value.
 		Assert.same([], person.leastFavouriteNumbers);
 		Assert.equals(person.favouriteNumbers, person.leastFavouriteNumbers);
+
+		// Check that this was picked up as a singleton.
+		var person2 = inj.get(var _:Person);
+		Assert.equals(person, person2);
 	}
 }

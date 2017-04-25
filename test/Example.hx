@@ -15,7 +15,7 @@ class Example {
 			var name:String = "Jason",
 			var _:Array<Int> = array,
 			var leastFavouriteNumbers:Array<Int> = array2,
-			var _:Person = @:toClass Person
+			Person
 		]);
 	}
 

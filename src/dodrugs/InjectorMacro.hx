@@ -346,19 +346,22 @@ class InjectorMacro {
 	/**
 	Check if an expression is a Type Path,
 	**/
-	static function exprIsTypePath( expr:Expr, ?needsToBeUpper=true ):Outcome<String,Error> {
-		function failure() return Failure( new Error('Not a valid type path: ${expr.toString()}', expr.pos) );
+	static function exprIsTypePath(expr:Expr, ?needsToBeUpper=true):Outcome<String,Error> {
+		function failure() return Failure(new Error('Not a valid type path: ${expr.toString()}', expr.pos));
 		function firstCharIsUpper(s:String) return s.charAt(0)==s.charAt(0).toUpperCase();
 		switch expr {
+			case {expr: EMeta(_, expr)}:
+				// Ignore any metadata.
+				return exprIsTypePath(expr, needsToBeUpper);
 			case macro $i{ident}:
 				return
-					if ( firstCharIsUpper(ident) || needsToBeUpper==false ) Success( ident );
+					if (firstCharIsUpper(ident) || needsToBeUpper==false) Success(ident);
 					else failure();
 			case macro $parent.$field:
-				if ( needsToBeUpper && firstCharIsUpper(field)==false )
+				if (needsToBeUpper && firstCharIsUpper(field)==false)
 					return failure();
 				switch exprIsTypePath(parent,false) {
-					case Success(tp): return Success( '$tp.$field' );
+					case Success(tp): return Success('$tp.$field');
 					case Failure(err): return failure();
 				}
 			case _: return failure();
@@ -385,6 +388,18 @@ class InjectorMacro {
 				details.ct = ct;
 				details.id = varName;
 				details.assignment = assignment;
+			case exprIsTypePath(_) => Success(typePathStr):
+				// They've just given a class name or TypePath.
+				// This is essentially the same as `var _:path.To.Type = path.To.Type`
+				details.ct = typePathStr.asComplexType();
+				var assignment = typePathStr.resolve();
+				// Check if it has @:toSingletonClass metadata, otherwise assume @:toClass.
+				details.assignment = switch mapType {
+					case macro @:toSingletonClass $typePath:
+						macro @:toSingletonClass $assignment;
+					default:
+						macro @:toClass $assignment;
+				}
 			default:
 				return mapType.reject( 'Incorrect syntax for mapping type: ${mapType.toString()} should be in the format `var injectionId:InjectionType`' );
 		}
