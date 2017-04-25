@@ -71,15 +71,15 @@ class UntypedInjector {
 
 	@param typeExpr The object to request. See `InjectorStatics.getInjectionString()` for a description of valid formats.
 	@return The requested object, with all injections applied. The return object will be correctly typed as the type you are requesting.
-	@throws (String) An error if the injection cannot be completed.
+	@throws (String) An error if the injection cannot be completed. This should be very rare as you receive compile time warnings if a required injection was missing.
 	**/
-	public macro function get( ethis:haxe.macro.Expr, typeExpr:haxe.macro.Expr ):haxe.macro.Expr {
-		var injectionString = InjectorMacro.getInjectionStringFromExpr( typeExpr );
-		var complexType = InjectorMacro.getComplexTypeFromIdExpr( typeExpr );
+	public macro function get(ethis:haxe.macro.Expr, typeExpr:haxe.macro.Expr):haxe.macro.Expr {
+		var injectionString = InjectorMacro.getInjectionStringFromExpr(typeExpr);
+		var complexType = InjectorMacro.getComplexTypeFromIdExpr(typeExpr);
 		// Get the Injector ID based on the current type of "this", and mark the current injection string as "required".
 		switch haxe.macro.Context.typeof(ethis) {
-			case TInst( _, [TInst(_.get() => { kind: KExpr({ expr: EConst(CString(injectorId)) }) },[])] ):
-				InjectorMacro.markInjectionStringAsRequired( injectorId, injectionString, typeExpr.pos );
+			case TInst(_, [TInst(_.get() => { kind: KExpr({ expr: EConst(CString(injectorId)) }) },[])]):
+				InjectorMacro.markInjectionStringAsRequired(injectorId, injectionString, typeExpr.pos);
 			case _:
 		}
 

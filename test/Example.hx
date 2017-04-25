@@ -3,14 +3,14 @@ import dodrugs.*;
 class Example {
 	static function main() {
 		var injector = setupInjector();
-		var person = buildPerson( injector );
+		var person = buildPerson(injector);
 		trace( 'I am ${person.name}, I am ${person.age} years old and I have ${person.favouriteNumbers.length} favourite numbers' );
 	}
 
 	public static function setupInjector() {
 		var array = [0,1,2];
 		var array2 = [-1,3,366];
-		return Injector.create( "exampleInjector", [
+		return Injector.create("exampleInjector", [
 			var age:Int = 28,
 			var name:String = "Jason",
 			var _:Array<Int> = array,

@@ -8,34 +8,76 @@ function $extend(from, fields) {
 }
 var Example = function() { };
 Example.main = function() {
-	var person = Example.buildPerson(Example.setupInjector());
+	var person = Example.setupInjector()._get("Example.Person");
 	console.log("I am " + person.name + ", I am " + person.age + " years old and I have " + person.favouriteNumbers.length + " favourite numbers");
 };
 Example.setupInjector = function() {
-	return null;
+	var array = [0,1,2];
+	var array2 = [-1,3,366];
+	return new dodrugs_Injector("exampleInjector",null,{ 'StdTypes.Int age' : function(_,_1) {
+		return 28;
+	}, 'String.String name' : function(_2,_3) {
+		return "Jason";
+	}, 'Array.Array<StdTypes.Int>' : function(_4,_5) {
+		return array;
+	}, 'Array.Array<StdTypes.Int> leastFavouriteNumbers' : function(_6,_7) {
+		return array2;
+	}, 'Example.Person' : function(inj,id) {
+		return new Person(inj._get("String.String name"),inj._get("StdTypes.Int age"),inj._get("Array.Array<StdTypes.Int> anArray"),inj._tryGet("Array.Array<StdTypes.Int> leastFavouriteNumbers",null));
+	}});
 };
-Example.buildPerson = function(injector) {
-	return injector._get("Example.Person");
+var Person = function(name,age,anArray,leastFavouriteNumbers) {
+	this.name = name;
+	this.age = age;
+	this.favouriteNumbers = anArray;
+	this.leastFavouriteNumbers = leastFavouriteNumbers;
 };
-var Person = function() { };
-var dodrugs_DynamicInjector = function() { };
-dodrugs_DynamicInjector.prototype = {
-	getFromID: function(id) {
+var dodrugs_UntypedInjector = function(parent,mappings) {
+	var _gthis = this;
+	this.parent = parent;
+	this.mappings = mappings;
+	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.UntypedInjector.UntypedInjector")) {
+		mappings["dodrugs.UntypedInjector.UntypedInjector"] = function(_,_1) {
+			return _gthis;
+		};
+	}
+};
+dodrugs_UntypedInjector.prototype = {
+	getFromId: function(id) {
 		return this._get(id);
 	}
 	,_get: function(id) {
+		var wildcardId = id.split(" ")[0];
 		if(Object.prototype.hasOwnProperty.call(this.mappings,id)) {
 			return this.mappings[id](this,id);
+		} else if(wildcardId != id && Object.prototype.hasOwnProperty.call(this.mappings,wildcardId)) {
+			return this.mappings[wildcardId](this,wildcardId);
 		} else if(this.parent != null) {
-			return this.parent.getFromID(id);
+			return this.parent.getFromId(id);
 		} else {
 			throw new js__$Boot_HaxeError("The injection had no mapping for \"" + id + "\"");
 		}
 	}
+	,_tryGet: function(id,fallback) {
+		try {
+			return this._get(id);
+		} catch( e ) {
+			return fallback;
+		}
+	}
 };
-var dodrugs_Injector = function() { };
-dodrugs_Injector.__super__ = dodrugs_DynamicInjector;
-dodrugs_Injector.prototype = $extend(dodrugs_DynamicInjector.prototype,{
+var dodrugs_Injector = function(name,parent,mappings) {
+	var _gthis = this;
+	dodrugs_UntypedInjector.call(this,parent,mappings);
+	this.name = name;
+	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.Injector.Injector<\"" + name + "\">")) {
+		mappings["dodrugs.Injector.Injector<\"" + name + "\">"] = function(_,_1) {
+			return _gthis;
+		};
+	}
+};
+dodrugs_Injector.__super__ = dodrugs_UntypedInjector;
+dodrugs_Injector.prototype = $extend(dodrugs_UntypedInjector.prototype,{
 });
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
