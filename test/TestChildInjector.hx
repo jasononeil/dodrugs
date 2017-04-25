@@ -9,19 +9,19 @@ class TestChildInjector {
 		var ufInjector = getUfrontInjector();
 		var myInjector = getMyInjector(ufInjector);
 
-		Assert.equals( "Anna", myInjector.get(String.withId("name")) );
-		Assert.equals( 26, myInjector.get(Int.withId("age")) );
+		Assert.equals("Anna", myInjector.get(var name:String));
+		Assert.equals(26, myInjector.get(var age:Int));
 	}
 
 	function getMyInjector(parent:Injector<"ufront-app-injector">) {
-		return Injector.extend( "my-app-injector", parent, [
-			(name:String).toValue("Anna"),
+		return Injector.extend("my-app-injector", parent, [
+			var name:String = "Anna"
 		]);
 	}
 
 	function getUfrontInjector<T>() {
-		return Injector.create( "ufront-app-injector", [
-			Int.withId("age").toValue(26),
+		return Injector.create("ufront-app-injector", [
+			var age:Int = 26,
 		]);
 	}
 }
