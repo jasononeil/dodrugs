@@ -59,10 +59,8 @@ class InjectorMacro {
 	@param mapType The expression representing the type or name we wish to reference.
 	@return The unique mapping string for this mapping type and name.
 	**/
-	public static function getInjectionStringFromExpr( mapType:Expr ):String {
-		var pair = getMappingDetailsFromExpr( mapType );
-		var complexType = makeTypePathAbsolute( pair.a, mapType.pos );
-		return formatMappingId( complexType, pair.b );
+	public static function getInjectionStringFromExpr(mapType:Expr):String {
+		return getMappingDetailsFromExpr(mapType).mappingId;
 	}
 
 	/**
@@ -71,9 +69,8 @@ class InjectorMacro {
 	@param mapType The expression representing the type or name we wish to reference.
 	@return The complex type that this expression represents.
 	**/
-	public static function getComplexTypeFromIdExpr( mapType:Expr ):ComplexType {
-		var pair = getMappingDetailsFromExpr( mapType );
-		return makeTypePathAbsolute( pair.a, mapType.pos );
+	public static function getComplexTypeFromIdExpr(mapType:Expr):ComplexType {
+		return getMappingDetailsFromExpr(mapType).ct;
 	}
 
 
@@ -84,30 +81,39 @@ class InjectorMacro {
 	@param mappingExpr The complete expression representing the mapping.
 	@return An object with the `field` (the injection ID) and the `expr` (the mapping function). Ready to use in an EObjectDecl.
 	**/
-	public static function processMappingExpr( injectorID:Null<String>, mappingExpr:Expr ):{ field:String, expr:Expr } {
-		var result = { field:null, expr:null };
-		switch mappingExpr {
-			case macro $mappingIDExpr.toClass( $classExpr ):
-				result.field = getInjectionStringFromExpr( mappingIDExpr );
-				result.expr = buildClassInstantiationFn( injectorID, classExpr );
-			case macro $mappingIDExpr.toSingleton( $classExpr ):
-				var fnExpr = buildClassInstantiationFn( injectorID, classExpr );
-				result.field = getInjectionStringFromExpr( mappingIDExpr );
-				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.DynamicInjector,id:String):Any return @:privateAccess inj._getSingleton( $fnExpr, id );
-			case macro $mappingIDExpr.toValue( $e ):
-				result.field = getInjectionStringFromExpr( mappingIDExpr );
-				result.expr = macro @:pos(e.pos) function(_:dodrugs.DynamicInjector, _:String):Any return ($e:Any);
-			case macro $mappingIDExpr.toFunction( $fn ):
-				result.field = getInjectionStringFromExpr( mappingIDExpr );
+	public static function processMappingExpr(injectorID:Null<String>, mappingExpr:Expr):{ field:String, expr:Expr } {
+		var details = getMappingDetailsFromExpr(mappingExpr);
+		var result = {
+			field: details.mappingId,
+			expr: null
+		};
+		switch details.assignment {
+			case macro @:toClass $classExpr:
+				result.expr = buildClassInstantiationFn(injectorID, classExpr);
+			case macro @:toSingletonClass $classExpr:
+				var fnExpr = buildClassInstantiationFn(injectorID, classExpr);
+				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.DynamicInjector,id:String):Any {
+					return @:privateAccess inj._getSingleton($fnExpr, id);
+				}
+			case macro @:toFunction $fn:
 				result.expr = fn;
-			case exprIsTypePath(_) => Success(_):
-				result.field = getInjectionStringFromExpr( mappingExpr );
-				result.expr = buildClassInstantiationFn( injectorID, mappingExpr );
-			case _:
-				return mappingExpr.reject( 'Mapping expression should end in .toClass(cls), .toSingleton(cls), .toValue(v) or .toFunction(fn)' );
+			case macro @:toSingletonFunction $fn:
+				// Haxe will reject DynamicInjector->String->T as different to DynamicInjector->String->Any.
+				// This function wrapping is a hack to make it unify.
+				var fnWithAnyReturn = macro @:pos(fn.pos) function (inj:dodrugs.DynamicInjector, id:String):Any {
+					return $fn(inj, id);
+				}
+				result.expr = macro @:pos(fn.pos) function(inj:dodrugs.DynamicInjector,id:String):Any {
+					return @:privateAccess inj._getSingleton($fnWithAnyReturn, id);
+				}
+			case macro $value:
+				result.expr = macro @:pos(value.pos) function(_:dodrugs.DynamicInjector, _:String):Any {
+					return ($value:Any);
+				}
 		}
-		if ( injectorID!=null )
-			markInjectionStringAsSupplied( injectorID, result.field, mappingExpr.pos );
+		if (injectorID!=null) {
+			markInjectionStringAsSupplied(injectorID, result.field, mappingExpr.pos);
+		}
 		return result;
 	}
 
@@ -380,15 +386,32 @@ class InjectorMacro {
 		}
 	}
 
-	static function getMappingDetailsFromExpr(mapType:Expr):Pair<ComplexType,String> {
+	static function getMappingDetailsFromExpr(mapType:Expr):{ct:ComplexType,id:String,mappingId:String,assignment:Expr} {
+		var details = {
+			ct: null,
+			id: null,
+			mappingId: null,
+			assignment: null
+		};
 		switch mapType {
 			case (macro var _:$ct):
-				return new Pair(ct, null);
+				details.ct = ct;
+			case (macro var _:$ct = $assignment):
+				details.ct = ct;
+				details.assignment = assignment;
 			case (macro var $varName:$ct):
-				return new Pair(ct, varName);
+				details.ct = ct;
+				details.id = varName;
+			case (macro var $varName:$ct = $assignment):
+				details.ct = ct;
+				details.id = varName;
+				details.assignment = assignment;
 			default:
 				return mapType.reject( 'Incorrect syntax for mapping type: ${mapType.toString()} should be in the format `var injectionID:Type`' );
 		}
+		details.ct = makeTypePathAbsolute(details.ct, mapType.pos);
+		details.mappingId = formatMappingId(details.ct, details.id);
+		return details;
 	}
 
 	static function formatMappingId( complexType:ComplexType, name:String ) {

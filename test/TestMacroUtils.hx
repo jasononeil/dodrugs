@@ -43,18 +43,31 @@ class TestMacroUtils {
 	}
 
 	function testGetInjectionMapping() {
-		var result = Injector.getInjectionMapping( Int.toValue(3600) );
-		Assert.same( "StdTypes.Int", result.id );
-		Assert.same( 3600, result.mappingFn(null,"") );
+		// Test value mapping
+		var result = Injector.getInjectionMapping(var _:Int = 3600);
+		Assert.same("StdTypes.Int", result.id);
+		Assert.same(3600, result.mappingFn(null,""));
 
+		// Test function mapping
 		var fn = function(inj,id) return null;
-		var result = Injector.getInjectionMapping( "Array<Int>".withId("test").toFunction(fn) );
-		Assert.equals( "Array.Array<StdTypes.Int> test", result.id );
-		Assert.equals( fn, result.mappingFn );
+		var result = Injector.getInjectionMapping(var test:Array<Int> = @:toFunction fn);
+		Assert.equals("Array.Array<StdTypes.Int> test", result.id);
+		Assert.equals(fn, result.mappingFn);
+
+		// Test function singleton mapping
+		var fn = function(inj,id) return [];
+		var mapping = Injector.getInjectionMapping(var test:Array<Int> = @:toSingletonFunction fn);
+		var inj = @:privateAccess new dodrugs.DynamicInjector(null, {
+			"some_id": mapping.mappingFn
+		});
+		Assert.equals("Array.Array<StdTypes.Int> test", mapping.id);
+		var firstGet = inj.getFromID("some_id");
+		var secondGet = inj.getFromID("some_id");
+		Assert.equals(firstGet, secondGet);
 
 		// Just test these don't throw errors.
 		// We'll check the class instantiation functions in `ClassInstantiation.hx`
-		var result = Injector.getInjectionMapping( Test.toClass(Test) );
-		var result = Injector.getInjectionMapping( haxe.remoting.Connection.toSingleton(haxe.remoting.HttpConnection) );
+		var result = Injector.getInjectionMapping(var _:Test = @:toClass Test);
+		var result = Injector.getInjectionMapping(var _:haxe.remoting.Connection = @:toSingletonClass haxe.remoting.HttpConnection);
 	}
 }
