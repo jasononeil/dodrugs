@@ -380,44 +380,15 @@ class InjectorMacro {
 		}
 	}
 
-	static function getMappingDetailsFromExpr( mapType:Expr ):Pair<ComplexType,String> {
-		var typePathRegex = ~/^([a-zA-Z0-9_\.]+\.)?[A-Z][a-zA-Z0-9_]*$/;
-		var name:String = null;
-		var complexType;
-
+	static function getMappingDetailsFromExpr(mapType:Expr):Pair<ComplexType,String> {
 		switch mapType {
-			case macro $expr.withId($nameExpr):
-				mapType = expr;
-				name = nameExpr.getString().sure();
-			case _:
+			case (macro var _:$ct):
+				return new Pair(ct, null);
+			case (macro var $varName:$ct):
+				return new Pair(ct, varName);
+			default:
+				return mapType.reject( 'Incorrect syntax for mapping type: ${mapType.toString()} should be in the format `var injectionID:Type`' );
 		}
-
-		switch mapType {
-			case macro $i{typeName}:
-				complexType = typeName.asComplexType();
-			case macro (_:$ct):
-				complexType = ct;
-			case macro ($i{nameStr}:$ct):
-				complexType = ct;
-				name = nameStr;
-			case { expr:EConst(CString(typeStr)), pos:pos }:
-				try {
-					switch Context.parse( '(_:$typeStr)', pos ) {
-						case macro (_:$ct): complexType = ct;
-						case _:
-					}
-				}
-				catch ( e:Dynamic ) {
-					Context.error( 'Failed to understand type $typeStr', pos );
-				}
-			case exprIsTypePath(_) => outcome:
-				var typeName = outcome.sure();
-				complexType = typeName.asComplexType();
-			case _:
-				mapType.reject( 'Incorrect syntax for mapping type: ${mapType.toString()} could not be understood' );
-		}
-
-		return new Pair( complexType, name );
 	}
 
 	static function formatMappingId( complexType:ComplexType, name:String ) {
