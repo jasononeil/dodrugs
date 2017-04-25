@@ -6,8 +6,7 @@ class InjectionTest_Constructor {
 	public var httpRequest(default,null):Http;
 	public var favouriteNumbers(default,null):Array<Int>;
 
-	@inject("name","age","","")
-	public function new( name:String, age:Int, httpRequest:Http, favouriteNumbers:Array<Int> ) {
+	public function new(name:String, age:Int, httpRequest:Http, favouriteNumbers:Array<Int>) {
 		this.name = name;
 		this.age = age;
 		this.httpRequest = httpRequest;
@@ -16,24 +15,22 @@ class InjectionTest_Constructor {
 }
 
 class InjectionTest_Constructor_Subclass extends InjectionTest_Constructor {
-	@inject("name","age","")
-	public function new( name:String, age:Int, httpRequest:Http ) {
-		super( name, age, httpRequest, [] );
+	public function new(name:String, age:Int, httpRequest:Http) {
+		super(name, age, httpRequest, []);
 	}
 }
 
 class InjectionTest_DefaultValues {
 	public var defaultConstructorString:String;
 	public var defaultConstructorInt:Int;
-	public var defaultConstructorNull:Null<Http>;
-	public var defaultConstructorOptional:Null<Http>;
+	public var defaultConstructorNull:Null<StringBuf>;
+	public var defaultConstructorOptional:Null<StringBuf>;
 
-	@inject("notfound4","notfound5","notfound6","notfound7")
-	public function new( str:String="Felix", int:Int=1, nullValue:Null<Http>, ?optionalValue:Http ) {
-		this.defaultConstructorString = str;
-		this.defaultConstructorInt = int;
-		this.defaultConstructorNull = nullValue;
-		this.defaultConstructorOptional = optionalValue;
+	public function new(notFound1:String="Felix", notFound2:Int=1, notFound3:Null<StringBuf>, ?notFound4:StringBuf) {
+		this.defaultConstructorString = notFound1;
+		this.defaultConstructorInt = notFound2;
+		this.defaultConstructorNull = notFound3;
+		this.defaultConstructorOptional = notFound4;
 	}
 }
 

@@ -29,10 +29,12 @@ class DynamicInjector {
 		return _get( id );
 	}
 
-	function _get( id:String ):Any {
+	function _get(id:String):Any {
+		var wildcardId = id.split(' ')[0];
 		return
-			if ( mappings.exists(id) ) mappings[id]( this, id )
-			else if ( this.parent!=null ) this.parent.getFromId( id )
+			if (mappings.exists(id)) mappings[id](this, id)
+			else if (mappings.exists(wildcardId)) mappings[wildcardId](this, wildcardId)
+			else if (this.parent!=null) this.parent.getFromId(id)
 			else throw 'The injection had no mapping for "$id"';
 	}
 

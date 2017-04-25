@@ -192,44 +192,23 @@ class InjectorMacro {
 		return Failure( new Error('The type ${classType.name} has no constructor',pos) );
 	}
 
-	static function getArgumentsForMethodInjection( injectorId:Null<String>, method:ClassField, injectionPos:Position ):Array<Pair<Expr,Expr>> {
-		var metaNames = getInjectionNamesFromMetadata( method );
+	static function getArgumentsForMethodInjection(injectorId:Null<String>, method:ClassField, injectionPos:Position):Array<Pair<Expr,Expr>> {
 		switch [method.kind, method.expr().expr] {
 			case [FMethod(_), TFunction({ args:methodArgs, expr:_, t:_ })]:
-				if ( metaNames.length!=0 && methodArgs.length!=metaNames.length ) {
-					Context.error( '@inject() had ${metaNames.length} parameters but ${method.name}() has ${methodArgs.length} arguments', method.pos );
+				var argumentExprs = [];
+				for (i in 0...methodArgs.length) {
+					var varName = methodArgs[i].v.name;
+					var injectionName = (varName != "_") ? varName : null;
+					var getValueExpr = getExprForFunctionArg( injectorId, methodArgs[i], injectionName, method.pos );
+					var identExpr = macro $i{varName};
+					var setValueExpr = macro var $varName = $getValueExpr;
+					argumentExprs.push( new Pair(identExpr,setValueExpr) );
 				}
-				else {
-					var argumentExprs = [];
-					for ( i in 0...methodArgs.length ) {
-						var varName = methodArgs[i].v.name;
-						var injectionName = (metaNames[i]!="") ? metaNames[i] : null;
-						var getValueExpr = getExprForFunctionArg( injectorId, methodArgs[i], injectionName, method.pos );
-						var identExpr = macro $i{varName};
-						var setValueExpr = macro var $varName = $getValueExpr;
-						argumentExprs.push( new Pair(identExpr,setValueExpr) );
-					}
-					return argumentExprs;
-				}
+				return argumentExprs;
 			case _:
-				Context.warning( 'Internal Injector Error: ${method.name} is not a method', method.pos );
+				Context.warning('Internal Injector Error: ${method.name} is not a method', method.pos);
 		}
 		return [];
-	}
-
-	static function getInjectionNamesFromMetadata( field:ClassField ):Array<String> {
-		var metaNames = [];
-		for ( metaEntry in field.meta.extract("inject") ) {
-			for ( param in metaEntry.params ) {
-				switch param.getString() {
-					case Success(str):
-						metaNames.push( str );
-					case Failure(_):
-						Context.error( '@inject() parameters should be strings', param.pos );
-				}
-			}
-		}
-		return metaNames;
 	}
 
 	static function getExprForFunctionArg( injectorId:Null<String>, methodArg:{v:TVar, value:Null<TConstant>}, injectionName:Null<String>, pos:Position ):Expr {
