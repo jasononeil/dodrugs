@@ -11,16 +11,16 @@ class Example {
 		var array = [0,1,2];
 		var array2 = [-1,3,366];
 		return Injector.create( "exampleInjector", [
-			Person,
-			Int.withId("age").toValue(28),
-			(name:String).toValue("Jason"),
-			"Array<Int>".toValue(array),
-			"Array<Int>".withId("leastFavouriteNumbers").toValue(array2),
+			var age:Int = 28,
+			var name:String = "Jason",
+			var _:Array<Int> = array,
+			var leastFavouriteNumbers:Array<Int> = array2,
+			var _:Person = @:toClass Person
 		]);
 	}
 
-	public static function buildPerson( injector:Injector<"exampleInjector"> ) {
-		return injector.get( Person );
+	public static inline function buildPerson(injector:Injector<"exampleInjector">) {
+		return injector.get(var _:Person);
 	}
 }
 
@@ -30,11 +30,10 @@ class Person {
 	public var favouriteNumbers:Array<Int>;
 	public var leastFavouriteNumbers:Null<Array<Int>>;
 
-	@inject("name", "age", "", "leastFavouriteNumbers")
-	public function new( name:String, age:Int, arr:Array<Int>, ?arr2:Array<Int>) {
+	public function new(name:String, age:Int, anArray:Array<Int>, ?leastFavouriteNumbers:Array<Int>) {
 		this.name = name;
 		this.age = age;
-		this.favouriteNumbers = arr;
-		this.leastFavouriteNumbers = arr2;
+		this.favouriteNumbers = anArray;
+		this.leastFavouriteNumbers = leastFavouriteNumbers;
 	}
 }

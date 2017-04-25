@@ -6,21 +6,21 @@ import dodrugs.*;
 class TestSingletons {
 	public function new() {}
 
-	function testSingleton() {
-		var injector = Injector.create( "singleton test", [
-			( age:Int ).toValue( 28 ),
-			( name:String ).toValue( "Jason" ),
-			( _:Array<Int> ).toValue( [1,2,3] ),
-			( leastFavouriteNumbers:Array<Int> ).toValue( [7,13,21] ),
-			Person.withId( "class mapping" ).toClass( Person ),
-			Person.withId( "singleton mapping" ).toSingleton( Person )
-		] );
+	function testClassSingleton() {
+		var injector = Injector.create("singleton test", [
+			var age:Int = 28,
+			var name:String = "Jason",
+			var _:Array<Int> = [1,2,3],
+			var leastFavouriteNumbers:Array<Int> = [7,13,21],
+			var classMapping:Person = @:toClass Person,
+			var singletonMapping:Person = @:toSingletonClass Person
+		]);
 
-		var p1 = injector.get( Person.withId("class mapping") );
-		var p2 = injector.get( Person.withId("class mapping") );
-		Assert.notEquals( p1, p2 );
-		var p3 = injector.get( Person.withId("singleton mapping") );
-		var p4= injector.get( Person.withId("singleton mapping") );
-		Assert.equals( p3, p4 );
+		var p1 = injector.get(var classMapping:Person);
+		var p2 = injector.get(var classMapping:Person);
+		Assert.notEquals(p1, p2);
+		var p3 = injector.get(var singletonMapping:Person);
+		var p4= injector.get(var singletonMapping:Person);
+		Assert.equals(p3, p4);
 	}
 }

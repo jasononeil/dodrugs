@@ -12,39 +12,13 @@ Example.main = function() {
 	console.log("I am " + person.name + ", I am " + person.age + " years old and I have " + person.favouriteNumbers.length + " favourite numbers");
 };
 Example.setupInjector = function() {
-	var array = [0,1,2];
-	var array2 = [-1,3,366];
-	return new dodrugs_Injector("exampleInjector",null,{ 'Example.Person' : function(inj,id) {
-		return new Person(inj._get("String.String name"),inj._get("StdTypes.Int age"),inj._get("Array.Array<StdTypes.Int>"),inj._tryGet("Array.Array<StdTypes.Int> leastFavouriteNumbers",null));
-	}, 'StdTypes.Int age' : function(_,_1) {
-		return 28;
-	}, 'String.String name' : function(_2,_3) {
-		return "Jason";
-	}, 'Array.Array<StdTypes.Int>' : function(_4,_5) {
-		return array;
-	}, 'Array.Array<StdTypes.Int> leastFavouriteNumbers' : function(_6,_7) {
-		return array2;
-	}});
+	return null;
 };
 Example.buildPerson = function(injector) {
 	return injector._get("Example.Person");
 };
-var Person = function(name,age,arr,arr2) {
-	this.name = name;
-	this.age = age;
-	this.favouriteNumbers = arr;
-	this.leastFavouriteNumbers = arr2;
-};
-var dodrugs_DynamicInjector = function(parent,mappings) {
-	var _gthis = this;
-	this.parent = parent;
-	this.mappings = mappings;
-	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.DynamicInjector.DynamicInjector")) {
-		mappings["dodrugs.DynamicInjector.DynamicInjector"] = function(_,_1) {
-			return _gthis;
-		};
-	}
-};
+var Person = function() { };
+var dodrugs_DynamicInjector = function() { };
 dodrugs_DynamicInjector.prototype = {
 	getFromID: function(id) {
 		return this._get(id);
@@ -58,24 +32,8 @@ dodrugs_DynamicInjector.prototype = {
 			throw new js__$Boot_HaxeError("The injection had no mapping for \"" + id + "\"");
 		}
 	}
-	,_tryGet: function(id,fallback) {
-		try {
-			return this._get(id);
-		} catch( e ) {
-			return fallback;
-		}
-	}
 };
-var dodrugs_Injector = function(name,parent,mappings) {
-	var _gthis = this;
-	dodrugs_DynamicInjector.call(this,parent,mappings);
-	this.name = name;
-	if(!Object.prototype.hasOwnProperty.call(mappings,"dodrugs.Injector.Injector<\"" + name + "\">")) {
-		mappings["dodrugs.Injector.Injector<\"" + name + "\">"] = function(_,_1) {
-			return _gthis;
-		};
-	}
-};
+var dodrugs_Injector = function() { };
 dodrugs_Injector.__super__ = dodrugs_DynamicInjector;
 dodrugs_Injector.prototype = $extend(dodrugs_DynamicInjector.prototype,{
 });
@@ -97,6 +55,5 @@ js__$Boot_HaxeError.wrap = function(val) {
 js__$Boot_HaxeError.__super__ = Error;
 js__$Boot_HaxeError.prototype = $extend(Error.prototype,{
 });
-Person.__meta__ = { fields : { _ : { inject : ["name","age","","leastFavouriteNumbers"]}}};
 Example.main();
 })();
