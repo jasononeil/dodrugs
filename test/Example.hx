@@ -20,7 +20,7 @@ class Example {
 	}
 
 	public static inline function buildPerson(injector:Injector<"exampleInjector">) {
-		return injector.get(var _:Person);
+		return injector.get(Person);
 	}
 }
 

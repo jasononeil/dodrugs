@@ -41,7 +41,7 @@ class TestExample {
 		Assert.equals(person.favouriteNumbers, person.leastFavouriteNumbers);
 
 		// Check that this was treated as a @:toClass not @:toSingleton
-		var person2 = inj.get(var _:Person);
+		var person2 = inj.get(Person);
 		Assert.notEquals(person, person2);
 	}
 }

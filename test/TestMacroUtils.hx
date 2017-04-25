@@ -8,11 +8,16 @@ class TestMacroUtils {
 	public function new() {}
 
 	function testInjectionIds() {
-		// Test `var id:Type = val` syntax.
+		// Test `var id:Type = val` and plain `TypePath` syntax.
+		Assert.equals("String.String", Injector.getInjectionString(String));
+		Assert.equals("StdTypes.Int", Injector.getInjectionString(Int));
+		Assert.equals("StringBuf.StringBuf", Injector.getInjectionString(StringBuf));
 		Assert.equals("String.String", Injector.getInjectionString(var _:String));
 		Assert.equals("StdTypes.Int", Injector.getInjectionString(var _:Int));
 		Assert.equals("StringBuf.StringBuf", Injector.getInjectionString(var _:StringBuf));
 		// Test injection IDs for types in packages.
+		Assert.equals("haxe.ds.ArraySort.ArraySort", Injector.getInjectionString(ArraySort));
+		Assert.equals("haxe.crypto.Sha1.Sha1", Injector.getInjectionString(haxe.crypto.Sha1));
 		Assert.equals("haxe.ds.ArraySort.ArraySort", Injector.getInjectionString(var _:ArraySort));
 		Assert.equals("haxe.crypto.Sha1.Sha1", Injector.getInjectionString(var _:haxe.crypto.Sha1));
 		// Test injection IDs that have type parameters
