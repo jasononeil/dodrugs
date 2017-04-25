@@ -22,7 +22,7 @@ class TestUntypedInjector {
 			}
 		});
 		childInj = @:privateAccess new UntypedInjector(parentInj, {
-			'array': function (inj, id) return [1,2,3],
+			'Array.Array<StdTypes.Int>': function (inj, id) return [1,2,3],
 			'integer': function (inj, id) return 5,
 			'string': function (inj, id) return "O'Neil",
 			'String.String withName': function (inj, id) return 'named injection'
@@ -41,9 +41,9 @@ class TestUntypedInjector {
 		Assert.equals("jason", parentInj.getFromId('string'));
 		Assert.equals("O'Neil", childInj.getFromId('string'));
 		// Check that if it does not exist, it throws.
-		Assert.raises(function () parentInj.getFromId('array'), String);
+		Assert.raises(function () parentInj.getFromId('Array.Array<StdTypes.Int>'), String);
 		// And a child can add one that is not on the parent.
-		Assert.same([1,2,3], childInj.getFromId('array'));
+		Assert.same([1,2,3], childInj.getFromId('Array.Array<StdTypes.Int>'));
 		// Check that the mapping functions are passed the injector and ID.
 		var result1:{inj:UntypedInjector, id:String} = parentInj.getFromId('self');
 		Assert.equals(parentInj, result1.inj);
@@ -57,8 +57,8 @@ class TestUntypedInjector {
 	}
 
 	function testTryGetFromId() {
-		Assert.same(["a","b","c"], parentInj.tryGetFromId('array', ["a", "b", "c"]));
-		Assert.same([1,2,3], childInj.tryGetFromId('array', ["a", "b", "c"]));
+		Assert.same([10,20,30], parentInj.tryGetFromId('Array.Array<StdTypes.Int>', [10,20,30]));
+		Assert.same([1,2,3], childInj.tryGetFromId('Array.Array<StdTypes.Int>', [10,20,30]));
 	}
 
 	function testGetSingleton() {
@@ -83,5 +83,13 @@ class TestUntypedInjector {
 		Assert.equals(parentInj, parentInj.get(dodrugs.UntypedInjector));
 		Assert.equals(childInj, childInj.get(var someName:UntypedInjector));
 		Assert.equals(parentInj, parentInj.get(var someName:dodrugs.UntypedInjector));
+	}
+
+	function testTryGet() {
+		Assert.same([10,20,30], parentInj.tryGet(var _:Array<Int>, [10,20,30]));
+		Assert.same([1,2,3], childInj.tryGet(var _:Array<Int>, [10,20,30]));
+
+		Assert.notNull(parentInj.tryGet(UntypedInjector, null));
+		Assert.isNull(parentInj.tryGet(StringBuf, null));
 	}
 }

@@ -67,7 +67,7 @@ class UntypedInjector {
 
 	This essentially is a shortcut for:
 
-	`injector.getFromId( Injector.getInjectionString(MyClass) );`
+	`injector.getFromId(Injector.getInjectionString(MyClass));`
 
 	@param typeExpr The object to request. See `InjectorStatics.getInjectionString()` for a description of valid formats.
 	@return The requested object, with all injections applied. The return object will be correctly typed as the type you are requesting.
@@ -84,5 +84,23 @@ class UntypedInjector {
 		}
 
 		return macro ($ethis.getFromId($v{injectionString}):$complexType);
+	}
+
+	/**
+	Try get a value from the injector, or use a fallback value if no value in the injector was found.
+
+	This essentially is a shortcut for:
+
+	`injector.tryGetFromId(Injector.getInjectionString(MyClass), fallback);`
+
+	@param typeExpr The object to request. See `InjectorStatics.getInjectionString()` for a description of valid formats.
+	@param fallback The fallback value to use if the injector did not have a matching mapping.
+	@return The requested object, with all injections applied, or the fallback object. The return object will be correctly typed as the type you are requesting.
+	**/
+	public macro function tryGet(ethis:haxe.macro.Expr, typeExpr:haxe.macro.Expr, fallback:haxe.macro.Expr):haxe.macro.Expr {
+		var injectionString = InjectorMacro.getInjectionStringFromExpr(typeExpr);
+		var complexType = InjectorMacro.getComplexTypeFromIdExpr(typeExpr);
+
+		return macro ($ethis.tryGetFromId($v{injectionString}, ($fallback:$complexType)):$complexType);
 	}
 }
