@@ -419,30 +419,33 @@ class InjectorMacro {
 		return ct.toType( pos ).sure().toComplex();
 	}
 
-	static function checkInjectorSuppliesAllRequirements( injectorId:String, creationPos:Position, types:Array<Type> ) {
+	static function checkInjectorSuppliesAllRequirements(injectorId:String, creationPos:Position, types:Array<Type>) {
 		var requiredMetaName = META_MAPPINGS_REQUIRED + injectorId;
 		var meta = getInjectorMeta();
 
 		// Collect all the supplied injections for this injector and it's parent.
 		var suppliedTypes = [];
-		while ( injectorId!=null ) {
+		while (injectorId!=null) {
 			var parentMetaName = META_INJECTOR_PARENT + injectorId;
 			var suppliedMetaName = META_MAPPINGS_SUPPLIED + injectorId;
-			var suppliedTypesMeta = meta.extract( suppliedMetaName )[0];
-			if ( suppliedTypesMeta!=null ) {
-				for ( expr in suppliedTypesMeta.params )
-					suppliedTypes.push( expr.getString().sure() );
+			var suppliedTypesMeta = meta.extract(suppliedMetaName)[0];
+			if (suppliedTypesMeta!=null) {
+				for (expr in suppliedTypesMeta.params) {
+					var id = expr.getString().sure();
+					suppliedTypes.push(id);
+				}
 			}
 			// See if there is a parent injector.
-			if ( meta.extract( parentMetaName )[0]==null )
+			if (meta.extract(parentMetaName)[0] == null) {
 				// There is no metadata, meaning Injector.create() or Injector.extend() was never called.
 				Context.error( 'Parent Injector $injectorId does not exist', creationPos );
-			var parentExpr = meta.extract( parentMetaName )[0].params[0];
+			}
+			var parentExpr = meta.extract(parentMetaName)[0].params[0];
 			switch parentExpr {
 				case macro null:
 					// Injector.create() was called, rather than extend(), so there is no parent.
 					injectorId = null;
-				case { expr: EConst(CIdent(id)), pos: _ }:
+				case {expr: EConst(CIdent(id)), pos: _}:
 					injectorId = id;
 				case _:
 					throw 'Internal Error: '+parentExpr;
@@ -451,12 +454,13 @@ class InjectorMacro {
 
 		// Collect all the required injections and check they're supplied.
 		var requiredMappingsMeta = meta.extract(requiredMetaName)[0];
-		if ( requiredMappingsMeta!=null ) {
-			for ( requiredMapping in requiredMappingsMeta.params ) {
-				var mapping = requiredMapping.getString().sure();
-				var isSupplied = suppliedTypes.indexOf( mapping ) > -1;
-				if ( !isSupplied ) {
-					var mappingName = StringTools.replace( mapping, ' ', ' with ID ' );
+		if (requiredMappingsMeta!=null) {
+			for (requiredMapping in requiredMappingsMeta.params) {
+				var mappingId = requiredMapping.getString().sure();
+				var wildcardMappingId = mappingId.split(' ')[0];
+				var isSupplied = suppliedTypes.indexOf(mappingId) > -1 || suppliedTypes.indexOf(wildcardMappingId) > -1;
+				if (!isSupplied) {
+					var mappingName = StringTools.replace(mappingId, ' ', ' with ID ');
 					Context.warning('Mapping "$mappingName" is required here', requiredMapping.pos);
 					Context.error('Please make sure you provide a mapping for "$mappingName" here', creationPos);
 				}
