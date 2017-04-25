@@ -100,8 +100,7 @@ class InjectorMacro {
 			case macro $mappingIDExpr.toFunction( $fn ):
 				result.field = getInjectionStringFromExpr( mappingIDExpr );
 				result.expr = fn;
-			case exprIsTypePath(_) => outcome:
-				var typeName = outcome.sure();
+			case exprIsTypePath(_) => Success(_):
 				result.field = getInjectionStringFromExpr( mappingExpr );
 				result.expr = buildClassInstantiationFn( injectorID, mappingExpr );
 			case _:
