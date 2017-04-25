@@ -35,7 +35,7 @@ class InjectionTest_DefaultValues {
 }
 
 class InjectionTest_InjectTheInjector {
-	public var injectorInstance:dodrugs.DynamicInjector;
+	public var injectorInstance:dodrugs.UntypedInjector;
 	public var injector:dodrugs.Injector<"classInstantiationInjector">;
 	public function new(injectorInstance, injector) {
 		this.injectorInstance = injectorInstance;

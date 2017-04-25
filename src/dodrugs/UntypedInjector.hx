@@ -1,21 +1,21 @@
 package dodrugs;
 
 /**
-DynamicInjector supplies the basic injection infrastructure to record mappings and provide values.
+UntypedInjector supplies the basic injection infrastructure to record mappings and provide values.
 
-It is `Dynamic` in the sense that it doesn't hold any information about which injector you are using, and provides no compile-time safety for checking if a value is injected as expected.
+It is `Untyped` in the sense that it doesn't hold any information about which injector you are using, and provides no compile-time safety for checking if a value is injected as expected.
 
-In general you should use `Injector<"my_id">` instead of `DynamicInjector`.
+In general you should use `Injector<"my_id">` instead of `UntypedInjector`.
 **/
-class DynamicInjector {
-	var parent:Null<DynamicInjector>;
+class UntypedInjector {
+	var parent:Null<UntypedInjector>;
 	var mappings:InjectorMappings;
 
-	function new( parent:Null<DynamicInjector>, mappings:InjectorMappings ) {
+	function new( parent:Null<UntypedInjector>, mappings:InjectorMappings ) {
 		this.parent = parent;
 		this.mappings = mappings;
-		if ( !mappings.exists('dodrugs.DynamicInjector.DynamicInjector') )
-			mappings.set( 'dodrugs.DynamicInjector.DynamicInjector', function(_,_) return this );
+		if ( !mappings.exists('dodrugs.UntypedInjector.UntypedInjector') )
+			mappings.set( 'dodrugs.UntypedInjector.UntypedInjector', function(_,_) return this );
 	}
 
 	/**

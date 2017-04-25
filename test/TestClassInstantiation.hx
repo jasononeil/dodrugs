@@ -11,20 +11,20 @@ class TestClassInstantiation {
 	var array:Array<Int>;
 	var array2:Array<Int>;
 	var injector:Injector<"classInstantiationInjector">;
-	var blankInjector:DynamicInjector;
+	var blankInjector:UntypedInjector;
 
 	function setup() {
 		http = new Http("/");
 		array = [0,1,2];
 		array2 = [-1,3,366];
-		blankInjector = @:privateAccess new DynamicInjector( null, {} );
+		blankInjector = @:privateAccess new UntypedInjector( null, {} );
 		injector = @:privateAccess new Injector( "classInstantiationInjector", null, {
 			"StdTypes.Int age": function(i,_) return 28,
 			"String.String name": function(i,_) return "Jason",
 			"haxe.Http.Http": function(i,_) return http,
 			"Array.Array<StdTypes.Int>": function(i,_) return array,
 			"Array.Array<StdTypes.Int> leastFavouriteNumbers": function(i,_) return array2,
-			"dodrugs.DynamicInjector.DynamicInjector": function(i,_) return blankInjector,
+			"dodrugs.UntypedInjector.UntypedInjector": function(i,_) return blankInjector,
 		});
 	}
 

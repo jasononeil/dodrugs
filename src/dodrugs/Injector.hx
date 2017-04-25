@@ -33,7 +33,7 @@ For example, "String.String", "StdTypes.Int", "Array.Array<StdTypes.Int>" or "sy
 
 ### Generating Injection Strings
 
-These strings can be used directly, for example, in `DynamicInjector.getFromId()`.
+These strings can be used directly, for example, in `UntypedInjector.getFromId()`.
 But usually, you will want to use special macro-powered syntax.
 
 Valid formats include:
@@ -109,14 +109,14 @@ requestInjector.get( Person ); // from the parent injector.
 #if !macro
 	@:build(dodrugs.InjectorMacro.resetInjectorMetadata())
 #end
-class Injector<Const> extends DynamicInjector {
+class Injector<Const> extends UntypedInjector {
 
 	/**
 	The unique name/ID of this injector.
 	**/
 	public var name(default,null):String;
 
-	function new( name:String, parent:Null<DynamicInjector>, mappings:InjectorMappings ) {
+	function new( name:String, parent:Null<UntypedInjector>, mappings:InjectorMappings ) {
 		super( parent, mappings );
 		this.name = name;
 		if ( !mappings.exists('dodrugs.Injector.Injector<"$name">') )
@@ -128,7 +128,7 @@ class Injector<Const> extends DynamicInjector {
 
 	@param name The name of this injector. This must be unique and created only once in the entire codebase.
 	@param mappings An array of mapping expressions describing the mappings this injector will provide. See the documentation above.
-	@return An `Injector<$name>`, a unique type that extends `DynamicInjector` but safely provides the given mappings.
+	@return An `Injector<$name>`, a unique type that extends `UntypedInjector` but safely provides the given mappings.
 	**/
 	@:noUsing
 	public static macro function create( name:String, mappings:haxe.macro.Expr ):haxe.macro.Expr {
@@ -142,7 +142,7 @@ class Injector<Const> extends DynamicInjector {
 	@param name The name of this injector. This must be unique and created only once in the entire codebase.
 	@param parent The injector that will be used as the parent. Please note this must be the parent `Injector` object, not the name of the parent injector.
 	@param mappings An array of mapping expressions describing the mappings this injector will provide. See the documentation above.
-	@return An `Injector<$name>`, a unique type that extends `DynamicInjector` but safely provides the given mappings.
+	@return An `Injector<$name>`, a unique type that extends `UntypedInjector` but safely provides the given mappings.
 	**/
 	@:noUsing
 	public static macro function extend( name:String, parent:haxe.macro.Expr, mappings:haxe.macro.Expr ):haxe.macro.Expr {

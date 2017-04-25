@@ -32,7 +32,7 @@ class TestMacroUtils {
 		var i1:Injector<"test_1"> = null;
 		var i2:Injector<"test_1"> = null;
 		var i3:Injector<"test_2"> = null;
-		var i4:DynamicInjector = null;
+		var i4:UntypedInjector = null;
 		var i5 = Injector.create( "test_1", [] );
 
 		Assert.equals( "dodrugs.Injector", Type.getClassName(Type.getClass(i5)) );
@@ -57,7 +57,7 @@ class TestMacroUtils {
 		// Test function singleton mapping
 		var fn = function(inj,id) return [];
 		var mapping = Injector.getInjectionMapping(var test:Array<Int> = @:toSingletonFunction fn);
-		var inj = @:privateAccess new dodrugs.DynamicInjector(null, {
+		var inj = @:privateAccess new dodrugs.UntypedInjector(null, {
 			"some_id": mapping.mappingFn
 		});
 		Assert.equals("Array.Array<StdTypes.Int> test", mapping.id);

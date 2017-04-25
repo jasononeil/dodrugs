@@ -92,22 +92,22 @@ class InjectorMacro {
 				result.expr = buildClassInstantiationFn(injectorId, classExpr);
 			case macro @:toSingletonClass $classExpr:
 				var fnExpr = buildClassInstantiationFn(injectorId, classExpr);
-				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.DynamicInjector,id:String):Any {
+				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.UntypedInjector,id:String):Any {
 					return @:privateAccess inj._getSingleton($fnExpr, id);
 				}
 			case macro @:toFunction $fn:
 				result.expr = fn;
 			case macro @:toSingletonFunction $fn:
-				// Haxe will reject DynamicInjector->String->T as different to DynamicInjector->String->Any.
+				// Haxe will reject UntypedInjector->String->T as different to UntypedInjector->String->Any.
 				// This function wrapping is a hack to make it unify.
-				var fnWithAnyReturn = macro @:pos(fn.pos) function (inj:dodrugs.DynamicInjector, id:String):Any {
+				var fnWithAnyReturn = macro @:pos(fn.pos) function (inj:dodrugs.UntypedInjector, id:String):Any {
 					return $fn(inj, id);
 				}
-				result.expr = macro @:pos(fn.pos) function(inj:dodrugs.DynamicInjector,id:String):Any {
+				result.expr = macro @:pos(fn.pos) function(inj:dodrugs.UntypedInjector,id:String):Any {
 					return @:privateAccess inj._getSingleton($fnWithAnyReturn, id);
 				}
 			case macro $value:
-				result.expr = macro @:pos(value.pos) function(_:dodrugs.DynamicInjector, _:String):Any {
+				result.expr = macro @:pos(value.pos) function(_:dodrugs.UntypedInjector, _:String):Any {
 					return ($value:Any);
 				}
 		}
@@ -120,7 +120,7 @@ class InjectorMacro {
 
 
 	/**
-	Add special metadata to DynamicInjector noting that this injection is required somewhere in the code base.
+	Add special metadata to UntypedInjector noting that this injection is required somewhere in the code base.
 
 	This will be used to check all required mappings are supplied during `Context.onGenerate()`, and produce helpful error messages otherwise.
 
@@ -134,7 +134,7 @@ class InjectorMacro {
 	}
 
 	/**
-	Add special metadata to DynamicInjector noting that this injection is supplied when the injector is created.
+	Add special metadata to UntypedInjector noting that this injection is supplied when the injector is created.
 
 	This will be used to check all required mappings are supplied during `Context.onGenerate()`, and produce helpful error messages otherwise.
 
@@ -164,7 +164,7 @@ class InjectorMacro {
 			case _: throw 'assert';
 		}
 		var constructorLines = getConstructorExpressions( injectorId, targetClassType, targetTypePath, p );
-		return macro @:pos(p) function(inj:dodrugs.DynamicInjector,id:String):Any $b{constructorLines};
+		return macro @:pos(p) function(inj:dodrugs.UntypedInjector,id:String):Any $b{constructorLines};
 	}
 
 	static function getConstructorExpressions( injectorId:Null<String>, type:ClassType, typePath:TypePath, pos:Position ):Array<Expr> {
@@ -266,7 +266,7 @@ class InjectorMacro {
 	}
 
 	static function getInjectorMeta() {
-		switch Context.getType("dodrugs.DynamicInjector") {
+		switch Context.getType("dodrugs.UntypedInjector") {
 			case TInst( _.get() => classType, _ ):
 				return classType.meta;
 			default:
@@ -409,7 +409,7 @@ class InjectorMacro {
 	}
 
 	static function makeTypePathAbsolute( ct:ComplexType, pos:Position ):ComplexType {
-		// If it is dodrugs.Injector<"name">, we don't want to expand that to dodrugs.DynamicInjector.
+		// If it is dodrugs.Injector<"name">, we don't want to expand that to dodrugs.UntypedInjector.
 		// So we'll manually check for it and make it absolute without calling "toType()".
 		switch ct {
 			case TPath({ pack:[], name:"Injector", params:params }), TPath({ pack:["dodrugs"], name:"Injector", params:params }):
