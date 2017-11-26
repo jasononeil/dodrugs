@@ -75,7 +75,7 @@ install:
 
 script:
 #  - haxe build-interp.hxml
-  - haxe test.hxml         && neko bin/test.n
+  - haxe test_neko.hxml         && neko bin/test.n
   - haxe example.hxml      && neko bin/example.n
 #  - haxe build-js.hxml           && node bin/HelloWorld.js
 #                                 && haxe phantomjs/run.hxml bin/HelloWorld.js
