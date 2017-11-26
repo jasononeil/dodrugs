@@ -12,6 +12,7 @@ class Test {
 		runner.addCase( new TestSingletons() );
 		runner.addCase( new TestChildInjector() );
 		runner.addCase( new TestExample() );
+		runner.addCase( new TestIssue17() );
 
 		// Compilation errors - we test these by running the Haxe compiler, so they're only available on sys platforms.
 		#if sys

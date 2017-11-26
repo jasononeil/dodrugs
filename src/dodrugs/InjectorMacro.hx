@@ -91,7 +91,7 @@ class InjectorMacro {
 		// Haxe will reject UntypedInjector->String->T as different to UntypedInjector->String->Any.
 		// This function wrapping is a hack to make it unify.
 		function makeFnReturnAny(fn: Expr) {
-			return macro @:pos(fn.pos) function (inj:dodrugs.UntypedInjector, id:String):Any {
+			return macro @:pos(fn.pos) function (inj:dodrugs.UntypedInjector, id:String): std.Any {
 				return ($fn: dodrugs.UntypedInjector->String->$ct)(inj, id);
 			}
 		}
@@ -101,18 +101,18 @@ class InjectorMacro {
 			case macro @:toSingletonClass $classExpr:
 				var fnExpr = buildClassInstantiationFn(injectorId, classExpr, ct);
 				fnExpr = makeFnReturnAny(fnExpr);
-				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.UntypedInjector,id:String):Any {
+				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.UntypedInjector,id:String): std.Any {
 					return @:privateAccess inj._getSingleton(@:noPrivateAccess $fnExpr, @:noPrivateAccess id);
 				}
 			case macro @:toFunction $fn:
 				result.expr = macro ($fn: dodrugs.UntypedInjector->String->$ct);
 			case macro @:toSingletonFunction $fn:
 				var fnWithAnyReturn = makeFnReturnAny(fn);
-				result.expr = macro @:pos(fn.pos) function(inj:dodrugs.UntypedInjector,id:String):Any {
+				result.expr = macro @:pos(fn.pos) function(inj:dodrugs.UntypedInjector,id:String): std.Any {
 					return @:privateAccess inj._getSingleton(@:noPrivateAccess $fnWithAnyReturn, @:noPrivateAccess id);
 				}
 			case macro $value:
-				result.expr = macro @:pos(value.pos) function(_:dodrugs.UntypedInjector, _:String):Any {
+				result.expr = macro @:pos(value.pos) function(_:dodrugs.UntypedInjector, _:String): std.Any {
 					return ($value:$ct);
 				}
 		}
@@ -345,7 +345,7 @@ class InjectorMacro {
 				mappings.reject( 'Injector rules should be provided using Map Literal syntax.' );
 		}
 		var objDecl = { expr:EObjectDecl(mappingRules), pos:mappings.pos };
-		return macro ($objDecl:haxe.DynamicAccess<dodrugs.InjectorMapping<Any>>);
+		return macro ($objDecl:haxe.DynamicAccess<dodrugs.InjectorMapping<std.Any>>);
 	}
 
 	/**
