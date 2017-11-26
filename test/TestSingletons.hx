@@ -39,12 +39,14 @@ class TestSingletons {
 			Group
 		]);
 
-		// The singleton should belong to the injector it was mapped on.
+		// The singleton should belong to the injector it was first called on, and shared with any children.
+		var p0 = parent.get(var p:Person);
 
 		// "Person" was mapped on the parent, so both children should use the same singleton.
 		var p1 = child1.get(var p:Person);
 		var p2 = child2.get(var p:Person);
-		Assert.equals(p1, p2);
+		Assert.equals(p0, p1);
+		Assert.equals(p0, p2);
 
 		// "Group" was mapped on the children, so each child should have a separate singleton.
 		var g1a = child1.get(var g:Group);

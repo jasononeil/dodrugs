@@ -16,7 +16,7 @@ class TestUntypedInjector {
 			'self': function (inj, id) return {inj: inj, id: id},
 			'String.String': function (inj, id) return 'wildcard fallback',
 			'singleton': function (inj:UntypedInjector, id:String) {
-				@:privateAccess return inj._getSingleton(function (inj, id) {
+				@:privateAccess return inj._getSingleton(inj, function (inj, id) {
 					return {num: "3.14159"};
 				}, id);
 			}
@@ -49,8 +49,11 @@ class TestUntypedInjector {
 		Assert.equals(parentInj, result1.inj);
 		Assert.equals('self', result1.id);
 		// Check that if a child lacks a mapping, it falls back to the parent.
+		// Note: the mapping function will be called with the injector that made the request (so the child, not the parent).
+		// This means result1 != result2.
 		var result2:{inj:UntypedInjector, id:String} = childInj.getFromId('self');
-		Assert.same(result1, result2);
+		Assert.equals(childInj, result2.inj);
+		Assert.equals('self', result2.id);
 		// Check fallback to wildcard mapping.
 		Assert.equals('wildcard fallback', parentInj.getFromId('String.String withName'));
 		Assert.equals('named injection', childInj.getFromId('String.String withName'));
@@ -61,14 +64,23 @@ class TestUntypedInjector {
 		Assert.same([1,2,3], childInj.tryGetFromId('Array.Array<StdTypes.Int>', [10,20,30]));
 	}
 
-	function testGetSingleton() {
-		// Test that the child also uses the same singleton as the parent.
-		// We don't want the child creating it's own singleton, and the parent doing that.
+	function testGetSingletonWhenParentCalledFirst() {
+		// When a parent is called first, singletons are scoped to it and all future children
+		// (We may add such functionality in future, see https://github.com/jasononeil/dodrugs/issues/11)
+		var obj1:{num:String} = parentInj.getFromId('singleton');
+		var obj2:{num:String} = childInj.getFromId('singleton');
+		Assert.equals(obj1, obj2);
+		Assert.equals("3.14159", obj1.num);
+	}
+
+	function testGetSingletonWhenChildCalledFirst() {
+		// When a singleton is loaded on a child before it is loaded on a parent, it is scoped to itself
 		// (We may add such functionality in future, see https://github.com/jasononeil/dodrugs/issues/11)
 		var obj1:{num:String} = childInj.getFromId('singleton');
 		var obj2:{num:String} = parentInj.getFromId('singleton');
-		Assert.equals(obj1, obj2);
+		Assert.notEquals(obj1, obj2);
 		Assert.equals("3.14159", obj1.num);
+		Assert.equals("3.14159", obj2.num);
 	}
 
 	function testGet() {

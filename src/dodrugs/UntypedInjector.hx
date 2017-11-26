@@ -29,13 +29,16 @@ class UntypedInjector {
 		return _get( id );
 	}
 
-	function _get(id:String):Any {
+	function _get(id: String, ?injectorThatRequested: UntypedInjector): Any {
+		if (injectorThatRequested == null) {
+			injectorThatRequested = this;
+		}
 		var wildcardId = id.split(' ')[0];
 		return
-			if (mappings.exists(id)) mappings[id](this, id)
-			else if (wildcardId != id && mappings.exists(wildcardId)) mappings[wildcardId](this, wildcardId)
-			else if (this.parent!=null) this.parent.getFromId(id)
-			else throw 'The injection had no mapping for "$id"';
+			if (mappings.exists(id)) mappings[id](injectorThatRequested, id)
+			else if (wildcardId != id && mappings.exists(wildcardId)) mappings[wildcardId](injectorThatRequested, wildcardId)
+			else if (this.parent!=null) this.parent._get(id, injectorThatRequested)
+			else throw 'The injection had no mapping for "$id" in injector "${untyped this.name}"';
 	}
 
 	/**
@@ -54,9 +57,9 @@ class UntypedInjector {
 			catch (e:Dynamic) fallback;
 	}
 
-	function _getSingleton( mapping:InjectorMapping<Any>, id:String ):Any {
+	function _getSingleton( injectorThatRequested: UntypedInjector, mapping:InjectorMapping<Any>, id:String ):Any {
 		var val = mapping( this, id );
-		mappings[id] = function(_, _) return val;
+		injectorThatRequested.mappings[id] = function(_, _) return val;
 		return val;
 	}
 

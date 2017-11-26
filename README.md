@@ -173,7 +173,14 @@ var requestInjector = Injector.extend("request_injector", appInjector, [
 ]);
 ```
 
-**A note about singletons:** If you have a singleton mapping defined on a parent injector, the singleton object belongs to the parent, and both the parent and all the children will use the same object. If you have a singleton mapping defined on the child injector, each child will have it's own singleton object.
+**A note about singletons and child injectors:** A singleton is created the first time `injector.get(MySingleton)` is called, and it will be available for future requests on that injector, and on all children injectors. Therefore, if you have a singleton mapping on a parent injector:
+
+- If you call `parent.get(MySingleton)`, the `MySingleton` object will be created and shared between the parent and all children.
+- If you call `child.get(MySingleton)`, the `MySingleton` object will be created and re-used for that child and any of it's children/grandchildren.
+- If you call both, the behaviour will change depending on which one you call first. If `parent.get(MySingleton)` is called before `child.get(MySingleton)`, they will share the same object. If the child is called first, it will have its own scoped object.
+
+This design trade-off was chosen as part of a refactor to allow children to supply injections to the parent injectors.
+If you have advice on a more predictable API pattern we could use here, please open an issue so we can discuss.
 
 ## Concepts
 
