@@ -107,7 +107,7 @@ requestInjector.get( Person ); // from the parent injector.
 
 **/
 #if !macro
-	@:build(dodrugs.InjectorMacro.resetInjectorMetadata())
+	@:build(dodrugs.InjectorMacro.buildInjector())
 #end
 class Injector<Const> extends UntypedInjector {
 
