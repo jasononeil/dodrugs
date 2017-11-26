@@ -1,7 +1,7 @@
 DoDrugs (A macro-powered dependency injector for Haxe)
 ======================================================
 
-![Travis Build Status](https://travis-ci.org/jasononeil/dodrugs.svg?branch=master)
+[![Travis Build Status](https://travis-ci.org/jasononeil/dodrugs.svg?branch=master)](https://travis-ci.org/jasononeil/dodrugs)
 
 DoDrugs is a dependency injection (*get it!!*) library for Haxe.
 
