@@ -156,6 +156,25 @@ You will get an error message like this:
 	test/Example.hx:30: lines 30-35 : Warning : Mapping "Array.Array<StdTypes.Int>" is required here
 	test/Example.hx:11: lines 11-15 : Please make sure you provide a mapping for "Array.Array<StdTypes.Int>" here
 
+### Child injectors
+
+Sometimes it is useful to have child injectors, which share all the same mappings as a parent, as well as some mappings of it's own.
+
+To create a child, use `Injector.extend`:
+
+```haxe
+var requestInjector = Injector.extend("request_injector", appInjector, [
+	// All of the mappings we defined above in `appInjector` will be available here.
+	// But we can add some more:
+	var user: User = getCurrentUser(),
+	var session: Session = getCurrentSession(),
+	var req: Request = req,
+	var res: Response = res,
+]);
+```
+
+**A note about singletons:** If you have a singleton mapping defined on a parent injector, the singleton object belongs to the parent, and both the parent and all the children will use the same object. If you have a singleton mapping defined on the child injector, each child will have it's own singleton object.
+
 ## Concepts
 
  1. #### Each injector has a unique name, and we know exactly what mappings it has at compile time, so we can be sure it has all the mappings it needs.
