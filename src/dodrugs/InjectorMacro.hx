@@ -83,32 +83,37 @@ class InjectorMacro {
 	**/
 	public static function processMappingExpr(injectorId:Null<String>, mappingExpr:Expr):{ field:String, expr:Expr } {
 		var details = getMappingDetailsFromExpr(mappingExpr);
+		var ct = details.ct;
 		var result = {
 			field: details.mappingId,
 			expr: null
 		};
+		// Haxe will reject UntypedInjector->String->T as different to UntypedInjector->String->Any.
+		// This function wrapping is a hack to make it unify.
+		function makeFnReturnAny(fn: Expr) {
+			return macro @:pos(fn.pos) function (inj:dodrugs.UntypedInjector, id:String):Any {
+				return ($fn: dodrugs.UntypedInjector->String->$ct)(inj, id);
+			}
+		}
 		switch details.assignment {
 			case macro @:toClass $classExpr:
-				result.expr = buildClassInstantiationFn(injectorId, classExpr);
+				result.expr = makeFnReturnAny(buildClassInstantiationFn(injectorId, classExpr, ct));
 			case macro @:toSingletonClass $classExpr:
-				var fnExpr = buildClassInstantiationFn(injectorId, classExpr);
+				var fnExpr = buildClassInstantiationFn(injectorId, classExpr, ct);
+				fnExpr = makeFnReturnAny(fnExpr);
 				result.expr = macro @:pos(classExpr.pos) function(inj:dodrugs.UntypedInjector,id:String):Any {
 					return @:privateAccess inj._getSingleton(@:noPrivateAccess $fnExpr, @:noPrivateAccess id);
 				}
 			case macro @:toFunction $fn:
-				result.expr = fn;
+				result.expr = macro ($fn: dodrugs.UntypedInjector->String->$ct);
 			case macro @:toSingletonFunction $fn:
-				// Haxe will reject UntypedInjector->String->T as different to UntypedInjector->String->Any.
-				// This function wrapping is a hack to make it unify.
-				var fnWithAnyReturn = macro @:pos(fn.pos) function (inj:dodrugs.UntypedInjector, id:String):Any {
-					return $fn(inj, id);
-				}
+				var fnWithAnyReturn = makeFnReturnAny(fn);
 				result.expr = macro @:pos(fn.pos) function(inj:dodrugs.UntypedInjector,id:String):Any {
 					return @:privateAccess inj._getSingleton(@:noPrivateAccess $fnWithAnyReturn, @:noPrivateAccess id);
 				}
 			case macro $value:
 				result.expr = macro @:pos(value.pos) function(_:dodrugs.UntypedInjector, _:String):Any {
-					return ($value:Any);
+					return ($value:$ct);
 				}
 		}
 		if (injectorId!=null) {
@@ -147,7 +152,7 @@ class InjectorMacro {
 		markInjectionStringMetadata( metaName, injectionString, pos );
 	}
 
-	static function buildClassInstantiationFn( injectorId:Null<String>, classExpr:Expr ):Expr {
+	static function buildClassInstantiationFn( injectorId:Null<String>, classExpr:Expr, ct:ComplexType ):Expr {
 		var p = classExpr.pos;
 		// Get the TypePath, ComplexType and Type based on the classExpr.
 		var className = exprIsTypePath( classExpr ).sure();
@@ -164,7 +169,7 @@ class InjectorMacro {
 			case _: throw 'assert';
 		}
 		var constructorLines = getConstructorExpressions( injectorId, targetClassType, targetTypePath, p );
-		return macro @:pos(p) function(inj:dodrugs.UntypedInjector,id:String):Any $b{constructorLines};
+		return macro @:pos(p) function(inj:dodrugs.UntypedInjector,id:String):$ct $b{constructorLines};
 	}
 
 	static function getConstructorExpressions( injectorId:Null<String>, type:ClassType, typePath:TypePath, pos:Position ):Array<Expr> {
