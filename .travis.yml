@@ -8,13 +8,13 @@ os:
 
 # Test with Haxe 3.2.1 and Haxe development.
 haxe:
-  - "3.4.2"
+  - "3.4.4"
   - development
 
 matrix:
-#  # Allow Haxe development to fail.
-#  allow_failures:
-#    - haxe: development
+ # Allow Haxe development to fail.
+ allow_failures:
+   - haxe: development
 
 addons:
 #  # This is the preferred way to install apt packages.
