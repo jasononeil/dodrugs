@@ -1,6 +1,8 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "haxe.displayConfigurations": [
-        ["completion.hxml"]
+        ["example.hxml"],
+        ["test_neko.hxml"],
+        ["test_js.hxml"]
     ]
 }

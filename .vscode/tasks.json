@@ -3,7 +3,8 @@
     "command": "haxe",
     "args": [
         "example.hxml",
-        "--next", "test.hxml"
+        "--next", "test_neko.hxml",
+        "--next", "test_js.hxml"
     ],
     "problemMatcher": {
         "owner": "haxe",

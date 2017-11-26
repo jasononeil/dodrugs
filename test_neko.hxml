@@ -1,0 +1,8 @@
+-main Test
+-cp src
+-cp test
+-lib utest
+-lib tink_macro
+-lib tink_core
+-dce full
+-neko bin/test.n
