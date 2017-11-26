@@ -26,9 +26,9 @@ class TestChildInjector {
 		]);
 	}
 
-	function testTemporarilyExtend() {
+	function testQuickExtend() {
 		var ufInjector = getUfrontInjector();
-		var myInjector = ufInjector.temporarilyExtend([
+		var myInjector = ufInjector.quickExtend([
 			var name: String = "Anna"
 		]);
 

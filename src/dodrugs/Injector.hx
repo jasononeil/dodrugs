@@ -112,18 +112,6 @@ requestInjector.get( Person ); // from the parent injector.
 class Injector<Const> extends UntypedInjector {
 
 	/**
-	The unique name/ID of this injector.
-	**/
-	public var name(default,null):String;
-
-	function new( name:String, parent:Null<UntypedInjector>, mappings:InjectorMappings ) {
-		super( parent, mappings );
-		this.name = name;
-		if ( !mappings.exists('dodrugs.Injector.Injector<"$name">') )
-			mappings.set( 'dodrugs.Injector.Injector<"$name">', function(_,_) return this );
-	}
-
-	/**
 	Create a new Injector with the given name and mappings.
 
 	@param name The name of this injector. This must be unique and created only once in the entire codebase.
@@ -165,11 +153,41 @@ class Injector<Const> extends UntypedInjector {
 	/**
 	Process the injection mapping and return an object with the mapping ID and mapping function.
 
-	@param The mapping expression.
+	@param mappingExpr The mapping expression.
 	@return An object with the mapping details: `{ id:String, mappingFn:InjectorMapping }`
 	**/
 	public static macro function getInjectionMapping( mappingExpr:haxe.macro.Expr ):haxe.macro.Expr {
 		var mapping = InjectorMacro.processMappingExpr( null, mappingExpr );
 		return macro { id:$v{mapping.field}, mappingFn:${mapping.expr} };
+	}
+
+	/**
+	The unique name/ID of this injector.
+	**/
+	public var name(default,null):String;
+
+	function new( name:String, parent:Null<UntypedInjector>, mappings:InjectorMappings ) {
+		super( parent, mappings );
+		this.name = name;
+		if ( !mappings.exists('dodrugs.Injector.Injector<"$name">') )
+			mappings.set( 'dodrugs.Injector.Injector<"$name">', function(_,_) return this );
+	}
+
+	#if macro
+	static var temporaryId = 0;
+	#end
+
+	/**
+	If you would like to extend an Injector and use it immediately, and don't care about using it later, you can use `quickExtend()`.
+
+	This will return a new child injector, with additional mappings ready to use.
+
+	The unique injector name is automatically generated, making it inconvenient to use this in a separate function at a later time - it's designed to be extended and used immediately.
+
+	@param mappings An array of mapping expressions describing the mappings this injector will provide. See the documentation above.
+	@return An `Injector<$temporary_name>`, a unique injector that extends the parent with a few extra mappings.
+	**/
+	public macro function quickExtend(ethis:haxe.macro.Expr, mappings: haxe.macro.Expr): haxe.macro.Expr {
+		return InjectorMacro.generateNewInjector( '__dodrugs_temporary_injector_${temporaryId++}', ethis, mappings);
 	}
 }
