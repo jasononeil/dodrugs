@@ -182,12 +182,14 @@ You will get an error message like this:
 
  3. #### Avoid reflection.
 
-	Using runtime reflection adds a lot of bloat to Haxe code. ([Here is a simple gist](https://gist.github.com/jasononeil/bf5da8e176e595f476720ffffa6816b9) showing an example with the generated JS).
+	Using runtime reflection adds a lot of bloat to Haxe generated JS. ([Here is a simple gist](https://gist.github.com/jasononeil/bf5da8e176e595f476720ffffa6816b9) showing an example with the generated JS).
 
 	Our aim is to avoid using `Reflect.callMethod`, `Reflect.setProperty`, `Reflect.fields`, `Type.getInstanceFields` or similar methods. We do this by using macros to generate code for instantiating new objects, rather than figuring it out at runtime using reflection.
 
 	Take a look at `bin/example.js` - it is very obvious when looking at the output code how each object is being constructed.
 	That example only has about 100 lines of generated JS - quite tiny considering a full dependency injector is in use.
+
+	Please note we do use `DynamicAccess`, which on some Haxe targets will use reflection, but importantly the output is clean and avoids reflection on the JS target.
 
  4. #### No runtime dependencies.
 
