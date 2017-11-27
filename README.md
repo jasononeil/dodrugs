@@ -160,7 +160,7 @@ You will get an error message like this:
 
 Sometimes it is useful to have child injectors, which share all the same mappings as a parent, as well as some mappings of it's own.
 
-#### `Injector.extend()`
+#### `Injector.extend(name, [])`
 
 To create a child, use `Injector.extend`:
 
@@ -175,7 +175,7 @@ var requestInjector = Injector.extend("request_injector", appInjector, [
 ]);
 ```
 
-#### `injector.quickExtend()`
+#### `injector.quickExtend([...additionalMappings])`
 
 If you would like to quickly add a few extra mappings and use an injector, and don't plan to use the injector later, you can use `quickExtend()`:
 
@@ -190,7 +190,7 @@ var user = requestInjector.get(User);
 Using `quickExtend()` will generate an injector name automatically, so it is inconvenient to use the new injector in another function at a later time.
 It is designed to be used immediately.
 
-#### `injector.getWith()`
+#### `injector.getWith(RequestedType, [...additionalMappings])`
 
 If you would like to fetch a single value from an injector, while adding a few extra mappings, you can use `injector.getWith()`.
 
@@ -202,6 +202,31 @@ var user = appInjector.getWith(User, [
 	var res: Response = currentResponse
 ]);
 ```
+
+#### `injector.instantiate(RequestedClass)`
+
+If you would like to create a new object of a particular class using the injector, but the class does not have a mapping, you can use `injector.instantiate(RequestedClass)`:
+
+```haxe
+var inj = Injector.create('app', [
+	var name: String = 'Jason',
+	var age: Int = 30
+]);
+// This will work even though "Person" was not mapped in the 'app' injector.
+var person = inj.instantiate(Person);
+```
+
+This works by creating a child injector with an extra mapping for that class. It is essentially the same as calling:
+
+```haxe
+var person = inj
+	.quickExtend([
+		var _:Person = @:toClass Person
+	])
+	.get(Person);
+```
+
+Note: if you call `instantiate()` but a mapping for the class already existed, the existing mapping will be used.
 
 #### A note about singletons and child injectors
 

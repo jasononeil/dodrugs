@@ -68,4 +68,28 @@ class TestChildInjector {
 
 		Assert.equals(26, ufInjector.get(var age:Int));
 	}
+
+	function testInstantiate() {
+		var injWithNoPersonSupplied = Injector.create("test-instantiate-when-class-not-provided", [
+			var age: Int = 30,
+			var name: String = 'Jason',
+			var _: Array<Int> = [1, 2, 3]
+		]);
+		var preSuppliedPerson = new Person('Anna', 27, [1, 2, 3]);
+		var injWithPersonSupplied = Injector.create("test-instantiate-when-class-is-provided", [
+			var age: Int = 30,
+			var name: String = 'Jason',
+			var _: Array<Int> = [1, 2, 3],
+			var _:Person = preSuppliedPerson
+		]);
+
+		var person1 = injWithNoPersonSupplied.instantiate(Person);
+		Assert.equals('Jason', person1.name);
+		Assert.equals(30, person1.age);
+
+		var person2 = injWithPersonSupplied.instantiate(Person);
+		Assert.equals('Anna', person2.name);
+		Assert.equals(27, person2.age);
+
+	}
 }

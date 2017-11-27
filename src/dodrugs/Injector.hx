@@ -199,10 +199,27 @@ class Injector<Const> extends UntypedInjector {
 	@param typeExpr The object to request. See `InjectorStatics.getInjectionString()` for a description of valid formats.
 	@param extraMappings An array of extra mappings to use while fetching the requested type.
 	@return The requested object, with all injections applied. The return object will be correctly typed as the type you are requesting.
-	@throws (String) An error if the injection cannot be completed. This should be very rare as you receive compile time warnings if a required injection was missing.
 	**/
 	public macro function getWith(ethis: haxe.macro.Expr, typeExpr: haxe.macro.Expr, extraMappings:haxe.macro.Expr): haxe.macro.Expr {
 		var newInjector = InjectorMacro.generateNewInjector( '__dodrugs_temporary_injector_${temporaryId++}', ethis, extraMappings);
 		return macro $newInjector.get($typeExpr);
+	}
+
+	/**
+	Instantiate a specific class using the values in the injector.
+
+	The difference between using `instantiate()` as opposed to `get()` is that if a mapping does not already exist, a `quickExtend()` child injector will be created with a rule to instantiate the requested class.
+
+	@param typeExpr The class you are requesting an instance of. Providing anything other than a class (such as an interface, a value, a function etc) will result in unspecified behaviour.
+	@return An instance of the requested class, with all injections applied. The return object will be correctly typed as the type you are requesting.
+	**/
+	public macro function instantiate(ethis: haxe.macro.Expr, typeExpr: haxe.macro.Expr): haxe.macro.Expr {
+		var injectionString = InjectorMacro.getInjectionStringFromExpr(typeExpr);
+		var ct = InjectorMacro.getComplexTypeFromIdExpr(typeExpr);
+		var ifAlreadyThere = macro (@:privateAccess $ethis.mappings).exists($v{injectionString});
+		// Note, we use `getFromId` rather than `get` to avoid setting metadata saying that we require the mapping here, as we do not - if it's not there we extend and supply ourselves.
+		var getExisting = macro ($ethis.getFromId($v{injectionString}): $ct);
+		var getWithNewMapping = macro $ethis.getWith($typeExpr, [$typeExpr]);
+		return macro $ifAlreadyThere ? $getExisting : $getWithNewMapping;
 	}
 }
