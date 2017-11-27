@@ -160,6 +160,8 @@ You will get an error message like this:
 
 Sometimes it is useful to have child injectors, which share all the same mappings as a parent, as well as some mappings of it's own.
 
+#### `Injector.extend()`
+
 To create a child, use `Injector.extend`:
 
 ```haxe
@@ -173,21 +175,37 @@ var requestInjector = Injector.extend("request_injector", appInjector, [
 ]);
 ```
 
+#### `injector.quickExtend()`
+
 If you would like to quickly add a few extra mappings and use an injector, and don't plan to use the injector later, you can use `quickExtend()`:
 
 ```haxe
-var user = appInjector
-	.quickExtend([
-		var req: Request = currentRequest,
-		var res: Response = currentResponse,
-	])
-	.get(User);
+var requestInjector = appInjector.quickExtend([
+	var req: Request = currentRequest,
+	var res: Response = currentResponse,
+]);
+var user = requestInjector.get(User);
 ```
 
 Using `quickExtend()` will generate an injector name automatically, so it is inconvenient to use the new injector in another function at a later time.
 It is designed to be used immediately.
 
-**A note about singletons and child injectors:** A singleton is created the first time `injector.get(MySingleton)` is called, and it will be available for future requests on that injector, and on all children injectors. Therefore, if you have a singleton mapping on a parent injector:
+#### `injector.getWith()`
+
+If you would like to fetch a single value from an injector, while adding a few extra mappings, you can use `injector.getWith()`.
+
+Calling `injector.getWith(type, mappings)` is essentially the same as calling `injector.quickExtend(mappings).get(type);`.
+
+```haxe
+var user = appInjector.getWith(User, [
+	var req: Request = currentRequest,
+	var res: Response = currentResponse
+]);
+```
+
+#### A note about singletons and child injectors
+
+A singleton is created the first time `injector.get(MySingleton)` is called, and it will be available for future requests on that injector, and on all children injectors. Therefore, if you have a singleton mapping on a parent injector:
 
 - If you call `parent.get(MySingleton)`, the `MySingleton` object will be created and shared between the parent and all children.
 - If you call `child.get(MySingleton)`, the `MySingleton` object will be created and re-used for that child and any of it's children/grandchildren.

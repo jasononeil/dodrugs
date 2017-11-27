@@ -190,4 +190,19 @@ class Injector<Const> extends UntypedInjector {
 	public macro function quickExtend(ethis:haxe.macro.Expr, mappings: haxe.macro.Expr): haxe.macro.Expr {
 		return InjectorMacro.generateNewInjector( '__dodrugs_temporary_injector_${temporaryId++}', ethis, mappings);
 	}
+
+	/**
+	Quickly extend an injector with extra mappings, and then make a `get()` request.
+
+	This is useful if you would like to add one or two extra mappings required for a particular injection to be successful, or to customise an injection just this once.
+
+	@param typeExpr The object to request. See `InjectorStatics.getInjectionString()` for a description of valid formats.
+	@param extraMappings An array of extra mappings to use while fetching the requested type.
+	@return The requested object, with all injections applied. The return object will be correctly typed as the type you are requesting.
+	@throws (String) An error if the injection cannot be completed. This should be very rare as you receive compile time warnings if a required injection was missing.
+	**/
+	public macro function getWith(ethis: haxe.macro.Expr, typeExpr: haxe.macro.Expr, extraMappings:haxe.macro.Expr): haxe.macro.Expr {
+		var newInjector = InjectorMacro.generateNewInjector( '__dodrugs_temporary_injector_${temporaryId++}', ethis, extraMappings);
+		return macro $newInjector.get($typeExpr);
+	}
 }

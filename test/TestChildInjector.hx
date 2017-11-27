@@ -56,4 +56,16 @@ class TestChildInjector {
 		Assert.equals(30, person1.age);
 		Assert.equals(27, person2.age);
 	}
+
+	function testGetWith() {
+		var ufInjector = getUfrontInjector();
+		Assert.equals(26, ufInjector.get(var age:Int));
+
+		var getWithResult = ufInjector.getWith(var age:Int, [
+			var age:Int = 30
+		]);
+		Assert.equals(30, getWithResult);
+
+		Assert.equals(26, ufInjector.get(var age:Int));
+	}
 }
