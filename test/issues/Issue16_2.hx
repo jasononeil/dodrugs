@@ -2,10 +2,10 @@ package issues;
 
 import dodrugs.*;
 
-class TestIssue16_Main_3 {
+class Issue16_Main_2 {
 	static function main() {
 		var inj = Injector.create("exampleInjector", [
-			var _:String = @:toFunction function (inj, id) return 28
+			var _:String = 28
 		]);
 	}
 }

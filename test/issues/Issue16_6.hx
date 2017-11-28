@@ -2,7 +2,7 @@ package issues;
 
 import dodrugs.*;
 
-class TestIssue16_6 {
+class Issue16_6 {
 	static function main() {
 		var inj = Injector.create("exampleInjector", [
 			var _:MyOtherClass = @:toSingletonClass MyTestClass

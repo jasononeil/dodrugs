@@ -2,10 +2,10 @@ package issues;
 
 import dodrugs.*;
 
-class TestIssue16_Main_2 {
+class Issue16_Main_1 {
 	static function main() {
 		var inj = Injector.create("exampleInjector", [
-			var _:String = 28
+			var _:{age: Int} = 28
 		]);
 	}
 }
