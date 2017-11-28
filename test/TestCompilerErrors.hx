@@ -59,7 +59,7 @@ class TestCompilerErrors {
 
 		var result = TestHelper.attemptToCompile('testcases/InvalidSyntax3.hx');
 		Assert.equals(1, result.code);
-		Assert.stringContains('Incorrect syntax for mapping type: { other : "type" } should be in the format `var injectionId:InjectionType``', result.stderr);
+		Assert.stringContains('Incorrect syntax for mapping type: { other : "type" } should be in the format `var injectionId:InjectionType`', result.stderr);
 	}
 
 	function testWrongMappingTypes() {
