@@ -170,7 +170,7 @@ class InjectorMacro {
 		var targetType = targetComplexType.toType().sure();
 		var targetClassType = switch targetType {
 			case TInst(t,_): t.get();
-			case _: Context.error( '${classExpr} is not a class', p );
+			case _: Context.error( '${className} is not a class', p );
 		}
 		targetComplexType = targetType.toComplex();
 		targetTypePath = switch targetComplexType {
@@ -352,7 +352,7 @@ class InjectorMacro {
 					mappingRules.push( rule );
 				}
 			case _:
-				mappings.reject( 'Injector rules should be provided using Map Literal syntax.' );
+				mappings.reject( 'Injector rules should be provided using Array syntax, with each mapping being an array item.' );
 		}
 		var objDecl = { expr:EObjectDecl(mappingRules), pos:mappings.pos };
 		return macro ($objDecl:haxe.DynamicAccess<dodrugs.InjectorMapping<std.Any>>);
@@ -510,10 +510,9 @@ class InjectorMacro {
 	}
 
 	static function getParentId(childId: String): String {
-		var meta = getInjectorMeta();
 		var parentMetaName = META_INJECTOR_PARENT + childId;
 		if (getMetadata(parentMetaName)[0] == null) {
-			Context.error( 'Child injector $childId does not exist', Context.currentPos() );
+			throw 'Child injector $childId does not exist';
 		}
 		var parentExpr = getMetadata(parentMetaName)[0].params[0];
 			switch parentExpr {
@@ -542,7 +541,6 @@ class InjectorMacro {
 
 	static function getRequiredTypesForInjectorId(injectorId: String): Array<Expr> {
 		var requiredMetaName = META_MAPPINGS_REQUIRED + injectorId;
-		var meta = getInjectorMeta();
 		var requiredMappingsMeta = getMetadata(requiredMetaName)[0];
 		if (requiredMappingsMeta != null && requiredMappingsMeta.params != null) {
 			return requiredMappingsMeta.params;

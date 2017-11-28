@@ -17,6 +17,7 @@ class Test {
 		// Compilation errors - we test these by running the Haxe compiler, so they're only available on sys platforms.
 		#if sys
 		runner.addCase( new TestIssue16() );
+		runner.addCase( new TestCompilerErrors() );
 		#end
 
 		Report.create( runner );
