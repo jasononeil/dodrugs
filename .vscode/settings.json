@@ -4,5 +4,6 @@
         ["example.hxml"],
         ["test_neko.hxml"],
         ["test_js.hxml"]
-    ]
+    ],
+    "editor.insertSpaces": false
 }
