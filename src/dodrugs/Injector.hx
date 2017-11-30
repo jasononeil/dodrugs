@@ -220,7 +220,7 @@ class Injector<Const> extends UntypedInjector {
 		// Note, we use `getFromId` rather than `get` to avoid setting metadata saying that we require the mapping here, as we do not - if it's not there we extend and supply ourselves.
 		var getExisting = macro ($ethis.getFromId($v{injectionString}): $ct);
 		var getWithNewMapping = macro $ethis.getWith($typeExpr, [$typeExpr]);
-		return macro $ifAlreadyThere ? $getExisting : $getWithNewMapping;
+		return macro @:pos(typeExpr.pos) $ifAlreadyThere ? $getExisting : $getWithNewMapping;
 	}
 
 	/**
@@ -234,6 +234,6 @@ class Injector<Const> extends UntypedInjector {
 	**/
 	public macro function instantiateWith(ethis: haxe.macro.Expr, typeExpr: haxe.macro.Expr, extraMappings: haxe.macro.Expr): haxe.macro.Expr {
 		var newInjector = InjectorMacro.generateNewInjector( '__dodrugs_temporary_injector_${temporaryId++}', ethis, extraMappings);
-		return macro $newInjector.instantiate($typeExpr);
+		return macro @:pos(Context.currentPos()) $newInjector.instantiate($typeExpr);
 	}
 }
