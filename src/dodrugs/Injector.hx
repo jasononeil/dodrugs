@@ -202,7 +202,7 @@ class Injector<Const> extends UntypedInjector {
 	**/
 	public macro function getWith(ethis: haxe.macro.Expr, typeExpr: haxe.macro.Expr, extraMappings:haxe.macro.Expr): haxe.macro.Expr {
 		var newInjector = InjectorMacro.generateNewInjector( '__dodrugs_temporary_injector_${temporaryId++}', ethis, extraMappings);
-		return macro $newInjector.get($typeExpr);
+		return macro @:pos(haxe.macro.Context.currentPos()) $newInjector.get($typeExpr);
 	}
 
 	/**
@@ -216,11 +216,12 @@ class Injector<Const> extends UntypedInjector {
 	public macro function instantiate(ethis: haxe.macro.Expr, typeExpr: haxe.macro.Expr): haxe.macro.Expr {
 		var injectionString = InjectorMacro.getInjectionStringFromExpr(typeExpr);
 		var ct = InjectorMacro.getComplexTypeFromIdExpr(typeExpr);
-		var ifAlreadyThere = macro (@:privateAccess $ethis.mappings).exists($v{injectionString});
+		var pos = haxe.macro.Context.currentPos();
+		var ifAlreadyThere = macro @:pos(pos) (@:privateAccess $ethis.mappings).exists($v{injectionString});
 		// Note, we use `getFromId` rather than `get` to avoid setting metadata saying that we require the mapping here, as we do not - if it's not there we extend and supply ourselves.
-		var getExisting = macro ($ethis.getFromId($v{injectionString}): $ct);
-		var getWithNewMapping = macro $ethis.getWith($typeExpr, [$typeExpr]);
-		return macro @:pos(typeExpr.pos) $ifAlreadyThere ? $getExisting : $getWithNewMapping;
+		var getExisting = macro @:pos(pos) ($ethis.getFromId($v{injectionString}): $ct);
+		var getWithNewMapping = macro @:pos(pos) $ethis.getWith($typeExpr, [$typeExpr]);
+		return macro @:pos(pos) $ifAlreadyThere ? $getExisting : $getWithNewMapping;
 	}
 
 	/**
@@ -234,6 +235,7 @@ class Injector<Const> extends UntypedInjector {
 	**/
 	public macro function instantiateWith(ethis: haxe.macro.Expr, typeExpr: haxe.macro.Expr, extraMappings: haxe.macro.Expr): haxe.macro.Expr {
 		var newInjector = InjectorMacro.generateNewInjector( '__dodrugs_temporary_injector_${temporaryId++}', ethis, extraMappings);
-		return macro @:pos(Context.currentPos()) $newInjector.instantiate($typeExpr);
+		var pos = haxe.macro.Context.currentPos();
+		return macro @:pos(pos) $newInjector.instantiate($typeExpr);
 	}
 }
