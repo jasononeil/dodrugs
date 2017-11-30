@@ -90,6 +90,16 @@ class TestChildInjector {
 		var person2 = injWithPersonSupplied.instantiate(Person);
 		Assert.equals('Anna', person2.name);
 		Assert.equals(27, person2.age);
+	}
 
+	function testInstantiateWith() {
+		var inj = Injector.create("test-instantiate-with", [
+			var age: Int = 30,
+			var _: Array<Int> = [1, 2, 3]
+		]);
+
+		var person = inj.instantiateWith(Person, [var name:String = 'Jason']);
+		Assert.equals('Jason', person.name);
+		Assert.equals(30, person.age);
 	}
 }

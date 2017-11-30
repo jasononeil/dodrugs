@@ -222,4 +222,18 @@ class Injector<Const> extends UntypedInjector {
 		var getWithNewMapping = macro $ethis.getWith($typeExpr, [$typeExpr]);
 		return macro $ifAlreadyThere ? $getExisting : $getWithNewMapping;
 	}
+
+	/**
+	Instantiate a specific class using the values in the injector, as well as some extra mappings.
+
+	This is essentially the same as calling `injector.quickExtend([...extraMappings]).instantiate(MyClass);`
+
+	@param typeExpr The class you are requesting an instance of. Providing anything other than a class (such as an interface, a value, a function etc) will result in unspecified behaviour.
+	@param extraMappings An array of extra mappings to use while instantiating the requested class.
+	@return An instance of the requested class, with all injections applied. The return object will be correctly typed as the type you are requesting.
+	**/
+	public macro function instantiateWith(ethis: haxe.macro.Expr, typeExpr: haxe.macro.Expr, extraMappings: haxe.macro.Expr): haxe.macro.Expr {
+		var newInjector = InjectorMacro.generateNewInjector( '__dodrugs_temporary_injector_${temporaryId++}', ethis, extraMappings);
+		return macro $newInjector.instantiate($typeExpr);
+	}
 }

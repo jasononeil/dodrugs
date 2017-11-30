@@ -5,6 +5,7 @@
 - Added `Injector.quickExtend(mappings)`.
 - Added `Injector.getWith(RequestedType, extraMappings)`
 - Added `Injector.instantiate(RequestedType)`
+- Added `Injector.instantiateWith(RequestedType, extraMappings)`
 - Changed behaviour:
     - Mapping functions now receive the injector the user called `get()` with, rather than the injector the mapping was on.
     - Singleton scoping has changed, singletons are now scoped to the calling injector and any children injectors that have not already called get(). See https://github.com/jasononeil/dodrugs/issues/11 for discussion.
