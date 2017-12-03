@@ -12,19 +12,20 @@ Example.main = function() {
 	console.log("I am " + person.name + ", I am " + person.age + " years old and I have " + person.favouriteNumbers.length + " favourite numbers");
 };
 Example.setupInjector = function() {
-	var array = [0,1,2];
-	var array2 = [-1,3,366];
+	var leastFavouriteNumbers = [-1,3,366];
 	return new dodrugs_Injector("exampleInjector",null,{ 'StdTypes.Int age' : function(_,_1) {
 		return 28;
 	}, 'String.String name' : function(_2,_3) {
 		return "Jason";
 	}, 'Array.Array<StdTypes.Int>' : function(_4,_5) {
-		return array;
+		return [0,1,2];
 	}, 'Array.Array<StdTypes.Int> leastFavouriteNumbers' : function(_6,_7) {
-		return array2;
+		return leastFavouriteNumbers;
 	}, 'Example.Person' : function(inj,id) {
-		return inj._getSingleton(function(inj1,id1) {
-			return new Person(inj1._get("String.String name"),inj1._get("StdTypes.Int age"),inj1._get("Array.Array<StdTypes.Int> anArray"),inj1._tryGet("Array.Array<StdTypes.Int> leastFavouriteNumbers",null));
+		return inj._getSingleton(inj,function(inj1,id1) {
+			return (function(inj2,id2) {
+				return new Person(inj2._get("String.String name"),inj2._get("StdTypes.Int age"),inj2._get("Array.Array<StdTypes.Int> anArray"),inj2._tryGet("Array.Array<StdTypes.Int> leastFavouriteNumbers",null));
+			})(inj1,id1);
 		},id);
 	}});
 };
@@ -45,19 +46,19 @@ var dodrugs_UntypedInjector = function(parent,mappings) {
 	}
 };
 dodrugs_UntypedInjector.prototype = {
-	getFromId: function(id) {
-		return this._get(id);
-	}
-	,_get: function(id) {
+	_get: function(id,injectorThatRequested) {
+		if(injectorThatRequested == null) {
+			injectorThatRequested = this;
+		}
 		var wildcardId = id.split(" ")[0];
 		if(Object.prototype.hasOwnProperty.call(this.mappings,id)) {
-			return this.mappings[id](this,id);
+			return this.mappings[id](injectorThatRequested,id);
 		} else if(wildcardId != id && Object.prototype.hasOwnProperty.call(this.mappings,wildcardId)) {
-			return this.mappings[wildcardId](this,wildcardId);
+			return this.mappings[wildcardId](injectorThatRequested,wildcardId);
 		} else if(this.parent != null) {
-			return this.parent.getFromId(id);
+			return this.parent._get(id,injectorThatRequested);
 		} else {
-			throw new js__$Boot_HaxeError("The injection had no mapping for \"" + id + "\"");
+			throw new js__$Boot_HaxeError("The injection had no mapping for \"" + id + "\" in injector \"" + this.name + "\"");
 		}
 	}
 	,_tryGet: function(id,fallback) {
@@ -67,9 +68,9 @@ dodrugs_UntypedInjector.prototype = {
 			return fallback;
 		}
 	}
-	,_getSingleton: function(mapping,id) {
+	,_getSingleton: function(injectorThatRequested,mapping,id) {
 		var val = mapping(this,id);
-		this.mappings[id] = function(_,_1) {
+		injectorThatRequested.mappings[id] = function(_,_1) {
 			return val;
 		};
 		return val;

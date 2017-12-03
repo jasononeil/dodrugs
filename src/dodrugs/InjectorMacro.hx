@@ -498,8 +498,32 @@ class InjectorMacro {
 					default:
 						macro @:toSingletonClass $assignment;
 				}
+			case (macro $i{variableName}):
+				try {
+					var type = Context.typeof(mapType);
+					details.ct = Context.toComplexType(type);
+					details.id = variableName;
+					details.assignment = mapType;
+					if (details.ct == null)
+						throw 'Unknown type for ${mapType.toString()}';
+				} catch (e: Dynamic) {
+					Context.warning('Failed to understand type ${mapType.toString()}', mapType.pos);
+					Context.warning('Perhaps use the format `var $variableName:MyType = $variableName`', mapType.pos);
+					return mapType.reject('Error: ' + e);
+				}
 			default:
-				return mapType.reject( 'Incorrect syntax for mapping type: ${mapType.toString()} should be in the format `var injectionId:InjectionType`' );
+				try {
+					var type = Context.typeof(mapType);
+					details.ct = Context.toComplexType(type);
+					details.id = null;
+					details.assignment = mapType;
+					if (details.ct == null)
+						throw 'Unknown type for ${mapType.toString()}';
+				} catch (e: Dynamic) {
+					Context.warning('Failed to understand type ${mapType.toString()}', mapType.pos);
+					Context.warning('Perhaps use the format `var _:MyType = ${mapType.toString()}`', mapType.pos);
+					return mapType.reject('Error: ' + e);
+				}
 		}
 		details.ct = makeTypePathAbsolute(details.ct, mapType.pos);
 		details.mappingId = formatMappingId(details.ct, details.id);

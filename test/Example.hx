@@ -8,13 +8,12 @@ class Example {
 	}
 
 	public static function setupInjector() {
-		var array = [0,1,2];
-		var array2 = [-1,3,366];
+		var leastFavouriteNumbers = [-1,3,366];
 		return Injector.create("exampleInjector", [
 			var age:Int = 28,
 			var name:String = "Jason",
-			var _:Array<Int> = array,
-			var leastFavouriteNumbers:Array<Int> = array2,
+			[0, 1, 2],
+			leastFavouriteNumbers,
 			Person
 		]);
 	}

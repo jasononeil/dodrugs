@@ -31,6 +31,12 @@ class TestMacroUtils {
 		// Check the injector itself maps correctly.
 		Assert.equals('dodrugs.Injector<"test">', Injector.getInjectionString(var _:Injector<"test">));
 		Assert.equals('dodrugs.Injector<"test2">', Injector.getInjectionString(var _:dodrugs.Injector<"test2">));
+
+		var sessionExpiry = 3600;
+		Assert.equals('StdTypes.Int sessionExpiry', Injector.getInjectionString(sessionExpiry));
+		Assert.equals('StdTypes.Int', Injector.getInjectionString(2000));
+
+		Assert.equals('TestMacroUtils.TestMacroUtils', Injector.getInjectionString(new TestMacroUtils()));
 	}
 
 	function testUniqueNames() {

@@ -51,7 +51,9 @@ class TestCompilerErrors {
 	function testInvalidMappingSyntax() {
 		var result = TestHelper.attemptToCompile('testcases/InvalidSyntax1.hx');
 		Assert.equals(1, result.code);
-		Assert.stringContains('Incorrect syntax for mapping type: myVar should be in the format `var injectionId:InjectionType`', result.stderr);
+		Assert.stringContains('Failed to understand type notMyVar', result.stderr);
+		Assert.stringContains('Perhaps use the format `var notMyVar:MyType = notMyVar`', result.stderr);
+		Assert.stringContains('Unknown identifier : notMyVar', result.stderr);
 
 		var result = TestHelper.attemptToCompile('testcases/InvalidSyntax2.hx');
 		Assert.equals(1, result.code);
@@ -59,7 +61,9 @@ class TestCompilerErrors {
 
 		var result = TestHelper.attemptToCompile('testcases/InvalidSyntax3.hx');
 		Assert.equals(1, result.code);
-		Assert.stringContains('Incorrect syntax for mapping type: { other : "type" } should be in the format `var injectionId:InjectionType`', result.stderr);
+		Assert.stringContains('Failed to understand type myface', result.stderr);
+		Assert.stringContains('Perhaps use the format `var myface:MyType = myface`', result.stderr);
+		Assert.stringContains('Unknown type for myface', result.stderr);
 	}
 
 	function testWrongMappingTypes() {
