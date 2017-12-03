@@ -63,6 +63,20 @@ class UntypedInjector {
 		return val;
 	}
 
+	/**
+	Fetch a value, using a mapping that exists on the parent injector if it exists, otherwise using the supplied mapping as a fallback.
+	**/
+	function _getPreferingParent(id: String, mapping: InjectorMapping<Any>) {
+		var parent = this.parent;
+		while (parent != null) {
+			if (parent.mappings.exists(id)) {
+				return parent.mappings[id](this, id);
+			}
+			parent = parent.parent;
+		}
+		return mapping(this, id);
+	}
+
 	// Macro helpers
 
 	/**

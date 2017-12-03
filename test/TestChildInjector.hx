@@ -102,4 +102,49 @@ class TestChildInjector {
 		Assert.equals('Jason', person.name);
 		Assert.equals(30, person.age);
 	}
+
+	function testInstantiateWithSubClass() {
+		var inj = Injector.create("test-instantiate-with-subclass", [
+			var role:String = 'Engineer',
+			var name:String = 'Jason',
+			var age: Int = 30,
+			var _: Array<Int> = [1, 2, 3]
+		]);
+
+		var employee = inj.instantiate(Employee);
+		Assert.equals('Jason', employee.person.name);
+		Assert.equals(30, employee.person.age);
+		Assert.equals('Engineer', employee.role);
+	}
+
+	function testThatInstantiatePrefersParent() {
+		var inj = Injector.create("test-instantiate-prefers-parent", [
+			var name:String = 'Anna',
+			var age: Int = 27,
+			var _: Array<Int> = [1, 2, 3],
+			var _:Employee = @:toClass Singer,
+			var role:String = 'Engineer', // Because we're instantiating a Singer not an Employee, this should not be used.
+		]);
+
+		var employee = inj.instantiate(Employee);
+		Assert.equals('Anna', employee.person.name);
+		Assert.equals(27, employee.person.age);
+		Assert.equals('Singer', employee.role);
+		Assert.isTrue(Std.is(employee, Singer));
+	}
+}
+
+class Employee {
+	public var person: Person;
+	public var role: String;
+	public function new(person: Person, role: String) {
+		this.person = person;
+		this.role = role;
+	}
+}
+
+class Singer extends Employee {
+	public function new(person: Person) {
+		super(person, "Singer");
+	}
 }

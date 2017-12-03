@@ -214,14 +214,14 @@ class Injector<Const> extends UntypedInjector {
 	@return An instance of the requested class, with all injections applied. The return object will be correctly typed as the type you are requesting.
 	**/
 	public macro function instantiate(ethis: haxe.macro.Expr, typeExpr: haxe.macro.Expr): haxe.macro.Expr {
-		var injectionString = InjectorMacro.getInjectionStringFromExpr(typeExpr);
-		var ct = InjectorMacro.getComplexTypeFromIdExpr(typeExpr);
-		var pos = haxe.macro.Context.currentPos();
-		var ifAlreadyThere = macro @:pos(pos) (@:privateAccess $ethis.mappings).exists($v{injectionString});
-		// Note, we use `getFromId` rather than `get` to avoid setting metadata saying that we require the mapping here, as we do not - if it's not there we extend and supply ourselves.
-		var getExisting = macro @:pos(pos) ($ethis.getFromId($v{injectionString}): $ct);
-		var getWithNewMapping = macro @:pos(pos) $ethis.getWith($typeExpr, [$typeExpr]);
-		return macro @:pos(pos) $ifAlreadyThere ? $getExisting : $getWithNewMapping;
+		var ct = InjectorMacro.getComplexTypeFromIdExpr(typeExpr),
+			pos = haxe.macro.Context.currentPos(),
+			allRequiredClasses = InjectorMacro.getAllClassesRequiredToBuildType(ct, typeExpr.pos),
+			newMappings: haxe.macro.Expr = {
+				expr: haxe.macro.Expr.ExprDef.EArrayDecl(allRequiredClasses),
+				pos: pos
+			};
+		return macro @:pos(pos) $ethis.getWith($typeExpr, $newMappings);
 	}
 
 	/**

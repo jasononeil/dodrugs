@@ -81,9 +81,9 @@ class InjectorMacro {
 	@return An object with the `field` (the injection ID) and the `expr` (the mapping function). Ready to use in an EObjectDecl.
 	**/
 	public static function processMappingExpr(injectorId:Null<String>, mappingExpr:Expr):{ field:String, expr:Expr } {
-		var details = getMappingDetailsFromExpr(mappingExpr);
-		var ct = details.ct;
-		var result = {
+		var details = getMappingDetailsFromExpr(mappingExpr),
+			ct = details.ct,
+			result = {
 			field: details.mappingId,
 			expr: null
 		};
@@ -114,6 +114,12 @@ class InjectorMacro {
 				result.expr = macro @:pos(value.pos) function(_:dodrugs.UntypedInjector, _:String): std.Any {
 					return ($value:$ct);
 				}
+		}
+		if (details.preferParent) {
+			var mappingFn = result.expr;
+			result.expr = macro @:pos(result.expr.pos) function (inj: dodrugs.UntypedInjector, id: String): std.Any {
+				return @:privateAccess inj._getPreferingParent(id, @:noPrivateAccess $mappingFn);
+			}
 		}
 		if (injectorId!=null) {
 			markInjectionStringAsSupplied(injectorId, result.field, mappingExpr.pos);
@@ -325,6 +331,75 @@ class InjectorMacro {
 	}
 
 	/**
+	Return an array of classes (as `package.dot.ClassName` expressions) that are needed to instantiate a new class.
+
+	These expressions can be used as mappings in a new child injector so that the child injector will be able to isntantiate the `complexType`.
+
+	@param complexType The complex type for the class you wish to instantiate
+	@param pos The position to use if we need to report any errors
+	@return An array of expressions containing the type paths of the classes needed to instantiate the requested type.
+	**/
+	public static function getAllClassesRequiredToBuildType(complexType: ComplexType, pos: Position): Array<Expr> {
+		var type = complexType.toType(pos).sure();
+		var allClassesRequired = new Map();
+		switch type {
+			case TInst(ref, _):
+				findClassesRequiredToBuildType(allClassesRequired, ref.get(), pos);
+			case _:
+				Context.error('Expected a class, but was some other kind of type:' + type.getID(), pos);
+		}
+		return [for (expr in allClassesRequired) expr];
+	}
+
+	static function findClassesRequiredToBuildType(allClassesRequired: Map<String, Expr>, classType: ClassType, pos: Position) {
+		var parts = classType.pack.concat([classType.module, classType.name]);
+		var classPathExpr = parts.drill(pos);
+		var mappingId = getInjectionStringFromExpr(classPathExpr);
+		allClassesRequired.set(mappingId, macro @:preferParentMapping $classPathExpr);
+		// Check if any of the function arguments are also classes that we should be adding to the allClassesRequired map.
+		var constructor = getConstructorForType(classType, pos).sure();
+		var fn = Context.getTypedExpr(constructor.expr());
+		switch fn.expr {
+			case EFunction(null, {args: args}):
+				for (arg in args) {
+					switch getInstantiableClassType(arg.type, pos) {
+						case Some(classTypeRef):
+							// Add this class and recursively check it's constructor for other classes we might need.
+							findClassesRequiredToBuildType(allClassesRequired, classTypeRef.get(), pos);
+						case None:
+					}
+				}
+			case _:
+				throw 'Expected unnamed function for constructor in ${parts.join('.')}';
+		}
+	}
+
+	static function getInstantiableClassType(complexType: ComplexType, pos: Position): haxe.ds.Option<Ref<ClassType>> {
+		var type = complexType.toType(pos).sure();
+		switch type {
+			case TInst(ref, _):
+				var classType = ref.get();
+				// Exclude Array, Date, EReg, IntIterator, List, String, StringBuf, SysError, Xml
+				var excludedBasicTypes = [
+					'Array',
+					'Date',
+					'EReg',
+					'IntIterator',
+					'List',
+					'String',
+					'StringBuf',
+					'SysError',
+					'Xml'
+				];
+				if (classType.pack.length != 0 || excludedBasicTypes.indexOf(classType.name) == -1) {
+					return Some(ref);
+				}
+			default:
+		}
+		return None;
+	}
+
+	/**
 	A build macro triggered on `Injector` to trigger various utilities, including:
 
 	- trigger an `onMacroContextReused` callback to reset Injector metadata on each build when using the compiler cache.
@@ -383,13 +458,21 @@ class InjectorMacro {
 		}
 	}
 
-	static function getMappingDetailsFromExpr(mapType:Expr):{ct:ComplexType,id:String,mappingId:String,assignment:Expr} {
+	static function getMappingDetailsFromExpr(mapType:Expr):{ct:ComplexType,id:String,mappingId:String,assignment:Expr,preferParent:Bool} {
 		var details = {
 			ct: null,
 			id: null,
 			mappingId: null,
-			assignment: null
+			assignment: null,
+			preferParent: false
 		};
+		// If there is @:preferParentMapping metadata, take note and we'll use that when generating the mapping.
+		switch mapType {
+			case macro @:preferParentMapping $expr:
+				mapType = expr;
+				details.preferParent = true;
+			default:
+		}
 		switch mapType {
 			case (macro var _:$ct):
 				details.ct = ct;
