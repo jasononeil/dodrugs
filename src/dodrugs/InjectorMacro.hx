@@ -352,7 +352,7 @@ class InjectorMacro {
 	}
 
 	static function findClassesRequiredToBuildType(allClassesRequired: Map<String, Expr>, classType: ClassType, pos: Position) {
-		var parts = classType.pack.concat([classType.module, classType.name]);
+		var parts = [classType.module, classType.name];
 		var classPathExpr = parts.drill(pos);
 		var mappingId = getInjectionStringFromExpr(classPathExpr);
 		allClassesRequired.set(mappingId, macro @:preferParentMapping $classPathExpr);
