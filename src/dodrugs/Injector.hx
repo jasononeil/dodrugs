@@ -214,9 +214,10 @@ class Injector<Const> extends UntypedInjector {
 	@return An instance of the requested class, with all injections applied. The return object will be correctly typed as the type you are requesting.
 	**/
 	public macro function instantiate(ethis: haxe.macro.Expr, typeExpr: haxe.macro.Expr): haxe.macro.Expr {
+		var injectorId = InjectorMacro.getIdOfInjector(ethis);
 		var ct = InjectorMacro.getComplexTypeFromIdExpr(typeExpr),
 			pos = haxe.macro.Context.currentPos(),
-			allRequiredClasses = InjectorMacro.getAllClassesRequiredToBuildType(ct, typeExpr.pos),
+			allRequiredClasses = InjectorMacro.getAllClassesRequiredToBuildType(ct, injectorId, typeExpr.pos),
 			newMappings: haxe.macro.Expr = {
 				expr: haxe.macro.Expr.ExprDef.EArrayDecl(allRequiredClasses),
 				pos: pos

@@ -33,16 +33,8 @@ class InjectorMacro {
 		// Add metadata to keep track of the parent.
 		var meta = getInjectorMeta();
 		var metaName = META_INJECTOR_PARENT + name;
-		var parentId = macro null;
-		switch parent.typeof() {
-			case Success(TInst(_.toString() => "dodrugs.Injector", [TInst(_.get() => paramClassType, [])])):
-				switch paramClassType.kind {
-					case KExpr({expr: EConst(CString(name))}):
-						parentId = macro $i{name};
-					default:
-				}
-			default:
-		};
+		var parentName = getIdOfInjector(parent);
+		var parentId = (parentName != null) ? macro $i{parentName} : macro null;
 		meta.add( metaName, [parentId], pos );
 
 		// Return `new Injector<"id">( name, parent, mappings )`, which will trigger the Injector @:genericBuild.
@@ -50,6 +42,25 @@ class InjectorMacro {
 		var param = TPExpr( macro $v{name} );
 		var typePath = "dodrugs.Injector".asTypePath([ param ]);
 		return macro @:pos(pos) @:privateAccess new $typePath(@:noPrivateAccess $v{name}, @:noPrivateAccess $parent, @:noPrivateAccess $mappingsExpr );
+	}
+
+	/**
+	Get the injector ID string from an expression
+
+	@param injector An expression representing the injector
+	@return A String containing the name of the injector, or `null` if it was not found.
+	**/
+	public static function getIdOfInjector(injector: Expr): Null<String> {
+		switch injector.typeof() {
+			case Success(TInst(_.toString() => "dodrugs.Injector", [TInst(_.get() => paramClassType, [])])):
+				switch paramClassType.kind {
+					case KExpr({expr: EConst(CString(name))}):
+						return name;
+					default:
+				}
+			default:
+		};
+		return null;
 	}
 
 	/**
@@ -336,28 +347,63 @@ class InjectorMacro {
 	These expressions can be used as mappings in a new child injector so that the child injector will be able to isntantiate the `complexType`.
 
 	@param complexType The complex type for the class you wish to instantiate
+	@param excludeClassesProvidedBy Exclude classes that are already provided by an injector with this name. If null, no classes will be excluded.
 	@param pos The position to use if we need to report any errors
 	@return An array of expressions containing the type paths of the classes needed to instantiate the requested type.
 	**/
-	public static function getAllClassesRequiredToBuildType(complexType: ComplexType, pos: Position): Array<Expr> {
+	public static function getAllClassesRequiredToBuildType(complexType: ComplexType, ?excludeClassesProvidedBy: Null<String>, pos: Position): Array<Expr> {
 		var type = complexType.toType(pos).sure();
+		var suppliedTypes;
+		if (excludeClassesProvidedBy != null) {
+			suppliedTypes = getSuppliedTypesForInjectorId(excludeClassesProvidedBy);
+		} else {
+			suppliedTypes = new Map();
+		}
 		var allClassesRequired = new Map();
 		switch type {
 			case TInst(ref, _):
-				findClassesRequiredToBuildType(allClassesRequired, ref.get(), pos);
+				findClassesRequiredToBuildType(allClassesRequired, suppliedTypes, ref.get(), null, pos);
 			case _:
 				Context.error('Expected a class, but was some other kind of type:' + type.getID(), pos);
 		}
 		return [for (expr in allClassesRequired) expr];
 	}
 
-	static function findClassesRequiredToBuildType(allClassesRequired: Map<String, Expr>, classType: ClassType, pos: Position) {
-		var parts = [classType.module, classType.name];
+	static function findClassesRequiredToBuildType(allClassesRequired: Map<String, Expr>, suppliedTypes: Map<String, MetadataEntry>, expectedClass: ClassType, expectedName: Null<String>, pos: Position) {
+		var parts = [expectedClass.module, expectedClass.name];
 		var classPathExpr = parts.drill(pos);
 		var mappingId = getInjectionStringFromExpr(classPathExpr);
+		if (!suppliedTypes.exists(mappingId) && expectedName != null) {
+			// If a wildcard mapping doesn't exist, check if a named mapping does.
+			// Note that the order doesn't matter for this check, we are just checking one of the options exists.
+			mappingId = mappingId + ' $expectedName';
+		}
+		if (suppliedTypes.exists(mappingId)) {
+			// Even though this class has a supplied mapping, it's possible some of its dependents do not.
+			// If the suppliedTypes metadata has some parameters, they are types this one depends on.
+			if (suppliedTypes[mappingId] != null) {
+				var entry = suppliedTypes[mappingId];
+				for (param in entry.params) {
+					var dependentMappingId = param.getString().sure();
+					var dependentTypeParts = dependentMappingId.split(' ')[0].split('.');
+					var dependentComplexType = TPath({
+						sub: dependentTypeParts.pop(),
+						name: dependentTypeParts.pop(),
+						pack: dependentTypeParts,
+						params: null,
+					});
+					switch getInstantiableClassType(dependentComplexType, param.pos) {
+						case Some(dependentClassType):
+							findClassesRequiredToBuildType(allClassesRequired, suppliedTypes, dependentClassType.get(), null, param.pos);
+						case None:
+					}
+				}
+			}
+			return;
+		}
 		allClassesRequired.set(mappingId, macro @:preferParentMapping $classPathExpr);
 		// Check if any of the function arguments are also classes that we should be adding to the allClassesRequired map.
-		var constructor = getConstructorForType(classType, pos).sure();
+		var constructor = getConstructorForType(expectedClass, pos).sure();
 		var fn = Context.getTypedExpr(constructor.expr());
 		switch fn.expr {
 			case EFunction(null, {args: args}):
@@ -365,7 +411,7 @@ class InjectorMacro {
 					switch getInstantiableClassType(arg.type, pos) {
 						case Some(classTypeRef):
 							// Add this class and recursively check it's constructor for other classes we might need.
-							findClassesRequiredToBuildType(allClassesRequired, classTypeRef.get(), pos);
+							findClassesRequiredToBuildType(allClassesRequired, suppliedTypes, classTypeRef.get(), arg.name, pos);
 						case None:
 					}
 				}
@@ -590,13 +636,13 @@ class InjectorMacro {
 			map.set(id, {
 				injectorId: id,
 				createdAt: expr.pos,
-				suppliedTypes: getSuppliedTypesForInjectorId(id, expr.pos)
+				suppliedTypes: getSuppliedTypesForInjectorId(id)
 			});
 		}
 		return map;
 	}
 
-	static function getSuppliedTypesForInjectorId(injectorId: String, injectorPos: Position): Map<String,MetadataEntry> {
+	static function getSuppliedTypesForInjectorId(injectorId: String): Map<String,MetadataEntry> {
 		var suppliedTypes = new Map();
 		while (injectorId != null) {
 			var requiredByAssociationMetaPrefix = META_MAPPINGS_REQUIRED_BY_ASSOCIATION + injectorId + '_';
@@ -622,7 +668,7 @@ class InjectorMacro {
 			throw 'Child injector $childId does not exist';
 		}
 		var parentExpr = getMetadata(parentMetaName)[0].params[0];
-			switch parentExpr {
+		switch parentExpr {
 			case macro null: return null;
 			case {expr: EConst(CIdent(id)), pos: _}: return id;
 			case _: throw 'Internal Error: '+parentExpr;
