@@ -7,6 +7,13 @@ import tink.core.Outcome;
 import tink.core.Pair;
 using tink.MacroApi;
 
+#if (haxe_ver <= 3.5)
+typedef ObjectField = {
+	field: String,
+	expr: Expr
+};
+#end
+
 /**
 Macros used internally by `dodrugs.Injector`.
 **/
@@ -91,7 +98,7 @@ class InjectorMacro {
 	@param mappingExpr The complete expression representing the mapping.
 	@return An object with the `field` (the injection ID) and the `expr` (the mapping function). Ready to use in an EObjectDecl.
 	**/
-	public static function processMappingExpr(injectorId:Null<String>, mappingExpr:Expr):{ field:String, expr:Expr } {
+	public static function processMappingExpr(injectorId:Null<String>, mappingExpr:Expr): ObjectField {
 		var details = getMappingDetailsFromExpr(mappingExpr),
 			ct = details.ct,
 			result = {
@@ -265,7 +272,11 @@ class InjectorMacro {
 
 	static function checkIfTypeIsOptional( t:Type, defaultValue:Null<Expr> ) {
 		switch t {
-			case TType(_.toString()=>"Null", _[0]=>actualType):
+			#if (haxe_ver <= 3.5)
+				case TType(_.toString()=>"Null", _[0]=>actualType):
+			#else
+				case TAbstract(_.toString()=>"Null", _[0]=>actualType):
+			#end
 				return new Pair( actualType, (defaultValue!=null) ? defaultValue : macro null );
 			case _:
 				return new Pair( t, defaultValue );
@@ -465,7 +476,7 @@ class InjectorMacro {
 	}
 
 	static function generateMappings( injectorId:Null<String>, mappings:Expr ):Expr {
-		var mappingRules = [];
+		var mappingRules: Array<ObjectField> = [];
 		switch mappings {
 			case macro [$a{mappingExprs}]:
 				for ( mappingExpr in mappingExprs ) {
@@ -578,13 +589,13 @@ class InjectorMacro {
 
 	static function formatMappingId( complexType:ComplexType, name:String ) {
 		var complexTypeStr = complexType.toString();
-		// type.toComplex().toString() does not handle const parameters correctly.
-		// For example showing "dodrugs.Injector<.SclassInstantiationInjector>" instead of dodrugs.Injector<"classInstantiationInjector">
-		var weirdTypeStr = ~/([a-zA-Z0-9_.]+)<\.S([a-zA-Z0-9]+)>/;
+		// So `type.toComplex().toString()` does not handle const parameters correctly.
+		// For example instead of `dodrugs.Injector<"classInstantiationInjector">` it shows `dodrugs.Injector<.SclassInstantiationInjector>`
+		// Unfortunately `Array.Array<String.String>` is indistinguishable from `Array.Array<"tring.String">` so we will only handle this for the dodrugs.Injector use case.
+		var weirdTypeStr = ~/dodrugs\.Injector\.Injector<[a-zA-Z0-9\.]*\.S([a-zA-Z0-9]+)>/;
 		if ( weirdTypeStr.match(complexTypeStr) ) {
-			var typeName = weirdTypeStr.matched( 1 );
-			var typeParam = weirdTypeStr.matched( 2 );
-			complexTypeStr = '$typeName<"$typeParam">';
+			var typeParam = weirdTypeStr.matched( 1 );
+			complexTypeStr = 'dodrugs.Injector.Injector<"$typeParam">';
 		}
 		// In case the type has constant type parameters, standardize on double quotes.
 		complexTypeStr = StringTools.replace( complexTypeStr, "\'", "\"" );
