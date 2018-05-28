@@ -18,18 +18,17 @@ This way the compiler knows exactly which mappings are available for `Injector<"
 At runtime, we store injector mappings as strings.
 
 These strings are usually made up of the type name, a space, and then name used for this mapping.
-The type name includes the package, the module name, and the type name.
-For example, a String with the ID "sessionName" will use the injection string "String.String sessionName".
+For example, a String with the ID "sessionName" will use the injection string "String sessionName".
 And an Int with the ID "sessionExpiry" will use the injection string "StdTypes.Int sessionExpiry".
 
 All of the type parameters are included in the injection strings.
-For example "Array.Array<StdTypes.Int> favouriteNumbers".
+For example "Array<StdTypes.Int> favouriteNumbers".
 
 The type names are fully qualified, and include the module name.
-For example instead of "Connection dbCnx" we would get "sys.db.Connection.Connection dbCnx".
+For example instead of "Connection dbCnx" we would get "sys.db.Connection dbCnx".
 
 If the injection mapping is just for the type, without a specific name, we just use the typename.
-For example, "String.String", "StdTypes.Int", "Array.Array<StdTypes.Int>" or "sys.db.Connection.Connection".
+For example, "String", "StdTypes.Int", "Array<StdTypes.Int>" or "sys.db.Connection".
 
 ### Generating Injection Strings
 
@@ -38,11 +37,11 @@ But usually, you will want to use special macro-powered syntax.
 
 Valid formats include:
 
-- Using a type name directly: `String` becomes "String.String"
-- Using an imported type: `Manager` becomes "sys.db.Manager.Manager"
-- Using a full type path: `sys.db.Connection` becomes "sys.db.Connection.Connection"
-- Wrapping a type name in quotes: `"String"` becomes "String.String"
-- Using quotes for types with parameters: `"StringMap<Connection>"` becomes "haxe.ds.StringMap.StringMap<sys.db.Connection.Connection>"
+- Using a type name directly: `String` becomes "String"
+- Using an imported type: `Manager` becomes "sys.db.Manager"
+- Using a full type path: `sys.db.Connection` becomes "sys.db.Connection"
+- Wrapping a type name in quotes: `"String"` becomes "String"
+- Using quotes for types with parameters: `"StringMap<Connection>"` becomes "haxe.ds.StringMap<sys.db.Connection>"
 
 You can then add a particular name to the ID:
 
@@ -169,8 +168,8 @@ class Injector<Const> extends UntypedInjector {
 	function new( name:String, parent:Null<UntypedInjector>, mappings:InjectorMappings ) {
 		super( parent, mappings );
 		this.name = name;
-		if ( !mappings.exists('dodrugs.Injector.Injector<"$name">') )
-			mappings.set( 'dodrugs.Injector.Injector<"$name">', function(_,_) return this );
+		if ( !mappings.exists('dodrugs.Injector<"$name">') )
+			mappings.set( 'dodrugs.Injector<"$name">', function(_,_) return this );
 	}
 
 	#if macro

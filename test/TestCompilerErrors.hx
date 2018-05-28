@@ -34,8 +34,8 @@ class TestCompilerErrors {
 	function testMissingMappings() {
 		var result = TestHelper.attemptToCompile('testcases/MissingMapping1.hx');
 		Assert.equals(1, result.code);
-		Assert.stringContains('Mapping "String.String" is required here', result.stderr);
-		Assert.stringContains('Please make sure you provide a mapping for "String.String" here', result.stderr);
+		Assert.stringContains('Mapping "String" is required here', result.stderr);
+		Assert.stringContains('Please make sure you provide a mapping for "String" here', result.stderr);
 
 		var result = TestHelper.attemptToCompile('testcases/MissingMapping2.hx');
 		Assert.equals(1, result.code);

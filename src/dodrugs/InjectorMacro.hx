@@ -588,18 +588,38 @@ class InjectorMacro {
 	}
 
 	static function formatMappingId( complexType:ComplexType, name:String ) {
+		var complexTypeStr = complexTypeToString(complexType);
+		return (name!=null) ? '${complexTypeStr} ${name}' : complexTypeStr;
+	}
+
+	static function complexTypeToString( complexType:ComplexType ) {
 		var complexTypeStr = complexType.toString();
+
+		// Prior to 0.16.1, tink_macro would print String.String instead of just String.
+		// See https://github.com/haxetink/tink_macro/commit/9cd59d39895c4e45105fb7114618b389f1b2b457
+		// if (tink_macro <= 0.16.1)
+		var version = Context.getDefines().get('tink_macro').split(".").map(Std.parseInt);
+		if (
+			version[0] == 0
+			&& version[1] <= 16
+			&& (version[1] < 16 || version[2] == 1)
+		) {
+			// Regex to match reptition like String.String or Array.Array but not String.StringTools
+			var repeatedTypeNameSearch = ~/\b([A-Z][A-Za-z0-9_]*)\.\1\b/g;
+			complexTypeStr = repeatedTypeNameSearch.replace(complexTypeStr, '$1');
+		}
+
 		// So `type.toComplex().toString()` does not handle const parameters correctly.
 		// For example instead of `dodrugs.Injector<"classInstantiationInjector">` it shows `dodrugs.Injector<.SclassInstantiationInjector>`
-		// Unfortunately `Array.Array<String.String>` is indistinguishable from `Array.Array<"tring.String">` so we will only handle this for the dodrugs.Injector use case.
-		var weirdTypeStr = ~/dodrugs\.Injector\.Injector<[a-zA-Z0-9\.]*\.S([a-zA-Z0-9]+)>/;
+		// Unfortunately `Array<SomeModule.SomeType>` is indistinguishable from `Array<"omeModule.SomeType">` so we will only handle this for the dodrugs.Injector use case.
+		var weirdTypeStr = ~/dodrugs\.Injector<[a-zA-Z0-9\.]*\.S([a-zA-Z0-9]+)>/;
 		if ( weirdTypeStr.match(complexTypeStr) ) {
 			var typeParam = weirdTypeStr.matched( 1 );
-			complexTypeStr = 'dodrugs.Injector.Injector<"$typeParam">';
+			complexTypeStr = 'dodrugs.Injector<"$typeParam">';
 		}
 		// In case the type has constant type parameters, standardize on double quotes.
 		complexTypeStr = StringTools.replace( complexTypeStr, "\'", "\"" );
-		return (name!=null) ? '${complexTypeStr} ${name}' : complexTypeStr;
+		return complexTypeStr;
 	}
 
 	static function makeTypePathAbsolute( ct:ComplexType, pos:Position ):ComplexType {

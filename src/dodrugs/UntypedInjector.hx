@@ -14,8 +14,8 @@ class UntypedInjector {
 	function new( parent:Null<UntypedInjector>, mappings:InjectorMappings ) {
 		this.parent = parent;
 		this.mappings = mappings;
-		if ( !mappings.exists('dodrugs.UntypedInjector.UntypedInjector') )
-			mappings.set( 'dodrugs.UntypedInjector.UntypedInjector', function(_,_) return this );
+		if ( !mappings.exists('dodrugs.UntypedInjector') )
+			mappings.set( 'dodrugs.UntypedInjector', function(_,_) return this );
 	}
 
 	/**

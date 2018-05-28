@@ -14,7 +14,7 @@ class TestUntypedInjector {
 			'integer': function (inj, id) return 0,
 			'string': function (inj, id) return 'jason',
 			'self': function (inj, id) return {inj: inj, id: id},
-			'String.String': function (inj, id) return 'wildcard fallback',
+			'String': function (inj, id) return 'wildcard fallback',
 			'singleton': function (inj:UntypedInjector, id:String) {
 				@:privateAccess return inj._getSingleton(inj, function (inj, id) {
 					return {num: "3.14159"};
@@ -22,16 +22,16 @@ class TestUntypedInjector {
 			}
 		});
 		childInj = @:privateAccess new UntypedInjector(parentInj, {
-			'Array.Array<StdTypes.Int>': function (inj, id) return [1,2,3],
+			'Array<StdTypes.Int>': function (inj, id) return [1,2,3],
 			'integer': function (inj, id) return 5,
 			'string': function (inj, id) return "O'Neil",
-			'String.String withName': function (inj, id) return 'named injection'
+			'String withName': function (inj, id) return 'named injection'
 		});
 	}
 
 	function testItMapsItself() {
-		Assert.equals(childInj, childInj.getFromId('dodrugs.UntypedInjector.UntypedInjector'));
-		Assert.equals(parentInj, parentInj.getFromId('dodrugs.UntypedInjector.UntypedInjector'));
+		Assert.equals(childInj, childInj.getFromId('dodrugs.UntypedInjector'));
+		Assert.equals(parentInj, parentInj.getFromId('dodrugs.UntypedInjector'));
 	}
 
 	function testGetFromId() {
@@ -41,9 +41,9 @@ class TestUntypedInjector {
 		Assert.equals("jason", parentInj.getFromId('string'));
 		Assert.equals("O'Neil", childInj.getFromId('string'));
 		// Check that if it does not exist, it throws.
-		Assert.raises(function () parentInj.getFromId('Array.Array<StdTypes.Int>'), String);
+		Assert.raises(function () parentInj.getFromId('Array<StdTypes.Int>'), String);
 		// And a child can add one that is not on the parent.
-		Assert.same([1,2,3], childInj.getFromId('Array.Array<StdTypes.Int>'));
+		Assert.same([1,2,3], childInj.getFromId('Array<StdTypes.Int>'));
 		// Check that the mapping functions are passed the injector and ID.
 		var result1:{inj:UntypedInjector, id:String} = parentInj.getFromId('self');
 		Assert.equals(parentInj, result1.inj);
@@ -55,13 +55,13 @@ class TestUntypedInjector {
 		Assert.equals(childInj, result2.inj);
 		Assert.equals('self', result2.id);
 		// Check fallback to wildcard mapping.
-		Assert.equals('wildcard fallback', parentInj.getFromId('String.String withName'));
-		Assert.equals('named injection', childInj.getFromId('String.String withName'));
+		Assert.equals('wildcard fallback', parentInj.getFromId('String withName'));
+		Assert.equals('named injection', childInj.getFromId('String withName'));
 	}
 
 	function testTryGetFromId() {
-		Assert.same([10,20,30], parentInj.tryGetFromId('Array.Array<StdTypes.Int>', [10,20,30]));
-		Assert.same([1,2,3], childInj.tryGetFromId('Array.Array<StdTypes.Int>', [10,20,30]));
+		Assert.same([10,20,30], parentInj.tryGetFromId('Array<StdTypes.Int>', [10,20,30]));
+		Assert.same([1,2,3], childInj.tryGetFromId('Array<StdTypes.Int>', [10,20,30]));
 	}
 
 	function testGetSingletonWhenParentCalledFirst() {
